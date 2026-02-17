@@ -1,6 +1,9 @@
 package gpdf
 
 import (
+	"bufio"
+	"math"
+	"os"
 	"strconv"
 )
 
@@ -13,6 +16,10 @@ func pct(p float64, m float64) float64 {
 // (converting from x increasing left-right, y increasing top-bottom)
 func dimen(xp, yp, w, h float64) (float64, float64) {
 	return pct(xp, w), pct(yp, h)
+}
+
+func (c *Canvas) Background(color string) {
+	c.Rect(50, 50, 100, 100, color)
 }
 
 // Line strokes a colored line from (x0, y0) to (x1, y1)
@@ -36,6 +43,14 @@ func (c *Canvas) Ellipse(x, y, w, h float64, color string) {
 	w = pct(w, c.Width)
 	h = pct(h, c.Height)
 	c.AbsEllipse(x, y, w, h, color)
+}
+
+// CornerRect a color filled rectangle lower left at (x,y), with dimentions (w,h)
+func (c *Canvas) CornerRect(x, y, w, h float64, color string) {
+	x, y = dimen(x, y, c.Width, c.Height)
+	w = pct(w, c.Width)
+	h = pct(h, c.Height)
+	c.AbsCornerRect(x, y-h, w, h, color)
 }
 
 // Rect makes a color filled rectangle centered at (x,y), with dimentions (w,h)
@@ -73,13 +88,45 @@ func (c *Canvas) QuadCurve(bx, by, cx, cy, ex, ey, size float64, color string) {
 	c.AbsCubicBezier(bx, by, cx, cy, cx, cy, ex, ey, size, color)
 }
 
-func (c *Canvas) Arc(x, y, w, h, a1, a2, size float64, color string) {
-	x, y = dimen(x, y, c.Width, c.Height)
-	w = pct(w, c.Width)
-	h = pct(w, c.Height)
-	a1 = deg2rad(a1)
-	a2 = deg2rad(a2)
-	c.AbsArc(x, y, w, h, a1, a2, size, color)
+// ArcLine makes a stroked arc, using percentage-based measures
+// center is (x, y), the arc begins at angle a1, and ends at a2, with radius r.
+// The arc is stroked with the specified stroke size and color
+func (c *Canvas) Arc(x, y, r, a1, a2, size float64, fillcolor string) {
+	// Define minimum and maximum step sizes
+	const minstep = 0.001
+	const maxstep = 0.1
+	const twoPi = math.Pi * 2
+
+	// convert angles from degrees to radians
+	a1 = a1 * (math.Pi / 180)
+	a2 = a2 * (math.Pi / 180)
+
+	// Ensure the angles are in the range [0, 2π)
+	a1 = math.Mod(a1, twoPi)
+	a2 = math.Mod(a2, twoPi)
+	// Calculate step size based on the radius (Smaller steps for larger radius)
+	step := 1.0 / (3.0 * r * twoPi)
+
+	// Clamp step to be within the defined range for performance reasons
+	if step < minstep {
+		step = minstep
+	}
+	if step > maxstep {
+		step = maxstep
+	}
+	// Ensure we handle crossing the 0/2π boundary correctly
+	if a2 < a1 {
+		a2 += twoPi
+	}
+	// Initialize the starting point
+	x1, y1 := c.Polar(x, y, r, a1)
+
+	for t := a1; t < a2; t += step {
+		x2, y2 := c.Polar(x, y, r, t)
+		c.Line(x1, y1, x2, y2, size, fillcolor)
+		x1 = x2
+		y1 = y2
+	}
 }
 
 // Images places an image centered at (x,y), with dimensions (w,h)
@@ -100,6 +147,27 @@ func (c *Canvas) Grid(xmin, xmax, ymin, ymax, size, incr float64, color string) 
 	for v := ymin; v <= ymax; v += incr {
 		c.Line(xmin, v, xmax, v, size, color)
 	}
+}
+
+// TextCode shows a text file, upper left at (x,y), dimensions (w, h) at size
+// the border of the block background and textcolors are also specified.
+func (c *Canvas) TextCode(name string, x, y, w, h, size, border float64, bgcolor, txcolor string) {
+	pf := c.Font
+	c.Font = Mono
+	c.CornerRect(x-border, y+border, w+(border*2), h+(border*2), txcolor)
+	c.CornerRect(x, y, w, h, bgcolor)
+	r, err := os.Open(name)
+	if err != nil {
+		c.Text(x+(size/2), y-(size/2), size, "File not found", txcolor)
+		return
+	}
+	scanner := bufio.NewScanner(r)
+	y -= size
+	for scanner.Scan() {
+		c.Text(x+size, y, size, scanner.Text(), txcolor)
+		y -= size * 1.2
+	}
+	c.Font = pf
 }
 
 // Grid makes a labeled coordinate grid starting at (xmin, ymin)
