@@ -1,8 +1,6 @@
 package gpdf
 
 import (
-	"math"
-
 	"github.com/coregx/gxpdf/creator"
 )
 
@@ -63,7 +61,31 @@ func (c *Canvas) AbsCenterRect(x, y, w, h float64, fillcolor string) {
 
 func (c *Canvas) AbsText(x, y, size float64, s string, fillcolor string) {
 	color := ColorLookup(fillcolor)
-	c.Page.AddTextColor(s, x, y, c.Font, size, creator.Color{R: color.R, G: color.G, B: color.B})
+	if c.CustomFont == nil {
+		c.Page.AddTextColor(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B})
+	} else {
+		c.Page.AddTextCustomFontColor(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B})
+	}
+}
+
+func (c *Canvas) AbsBText(x, y, size float64, s string, fillcolor string) {
+	c.AbsText(x, y, size, s, fillcolor)
+}
+
+func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor string) {
+	if c.CustomFont == nil {
+		return
+	}
+	w := c.CustomFont.MeasureString(s, size)
+	c.AbsText(x-(w/2), y, size, s, fillcolor)
+}
+
+func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor string) {
+	if c.CustomFont == nil {
+		return
+	}
+	w := c.CustomFont.MeasureString(s, size)
+	c.AbsText(x-w, y, size, s, fillcolor)
 }
 
 func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
@@ -103,34 +125,6 @@ func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64
 			G: color.G,
 			B: color.B,
 		}, Width: size})
-}
-
-func deg2rad(d float64) float64 {
-	return (360 - d) * (math.Pi / 180)
-}
-
-func (c *Canvas) AbsArc(x, y, rx, ry, angle1, angle2, size float64, strokecolor string) {
-	/*
-	   const n = 16
-
-	   	for i := range n {
-	   		p1 := float64(i+0) / n
-	   		p2 := float64(i+1) / n
-	   		a1 := angle1 + (angle2-angle1)*p1
-	   		a2 := angle1 + (angle2-angle1)*p2
-	   		x0 := x + rx*math.Cos(a1)
-	   		y0 := y + ry*math.Sin(a1)
-	   		x1 := x + rx*math.Cos((a1+a2)/2)
-	   		y1 := y + ry*math.Sin((a1+a2)/2)
-	   		x2 := x + rx*math.Cos(a2)
-	   		y2 := y + ry*math.Sin(a2)
-	   		cx := 2*x1 - x0/2 - x2/2
-	   		cy := 2*y1 - y0/2 - y2/2
-
-	   		c.AbsCubicBezier(x0, y0, cx, cy, cx, cy, x2, y2, size, strokecolor)
-
-	   }
-	*/
 }
 
 func (c *Canvas) AbsImage(x, y, w, h float64, name string) error {

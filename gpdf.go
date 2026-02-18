@@ -24,7 +24,8 @@ const (
 type Canvas struct {
 	Page          *creator.Page
 	Creator       *creator.Creator
-	Font          creator.FontName
+	StdFont       creator.FontName
+	CustomFont    *creator.CustomFont
 	Width, Height float64
 }
 
@@ -38,9 +39,20 @@ func SetupCanvas(pagesize creator.PageSize) (*Canvas, error) {
 	}
 	canvas.Creator = c
 	canvas.Page = page
-	canvas.Font = Sans
+	canvas.StdFont = Sans
+	canvas.CustomFont = nil
 	canvas.Width, canvas.Height = page.Width(), page.Height()
 	return canvas, nil
+}
+
+// LoadFont loads a custom font
+func (c *Canvas) LoadFont(path string) error {
+	f, err := creator.LoadFont(path)
+	if err != nil {
+		return err
+	}
+	c.CustomFont = f
+	return nil
 }
 
 // NewPage starts a new Page

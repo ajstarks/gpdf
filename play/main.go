@@ -32,7 +32,7 @@ func main() {
 		"Polygon(x,y, color)",
 		"QuadCurve(bx,by, cx,cy, ex,ey, size, color)",
 		"Rect(x,y, w,h, color)",
-		"Text(x,y, size, color)",
+		"{B,C,E}Text(x,y, size, color)",
 		"TextCode(name, x,y,w,h, size,border, bcolor,tcolor)",
 		"Grid(x1,x2, y1,y2, size, incr, color)",
 		"Background(color)",
@@ -53,7 +53,13 @@ func main() {
 	tcolor := "gray"
 	canvas.Background("black")
 	canvas.Text(c1, 95, 3, "Generate PDF (gpdf) API", "white")
-	canvas.Font = gpdf.Mono
+	canvas.StdFont = gpdf.Mono
+
+	err = canvas.LoadFont("PublicSans-Regular.ttf")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "custom font not loaded")
+		os.Exit(1)
+	}
 	for i := range labels {
 		canvas.Text(c1, y, ts, labels[i], tcolor)
 		y -= yspace
@@ -105,8 +111,15 @@ func main() {
 	canvas.Circle(c2, y, dotsize, dotcolor)
 	y -= yspace
 	// text
-	canvas.Text(c2, y, 3, "hello", shapecolor)
+	tc0 := c2 - 8
+	tc1 := c2 + 8
+	canvas.BText(tc0, y, 2, "hello", shapecolor)
+	canvas.Circle(tc0, y, dotsize, dotcolor)
+	canvas.CText(c2, y, 2, "hello", shapecolor)
 	canvas.Circle(c2, y, dotsize, dotcolor)
+	canvas.EText(tc1, y, 2, "hello", shapecolor)
+	canvas.Circle(tc1, y, dotsize, dotcolor)
+	//canvas.Etext()
 	y -= yspace
 	// textcode
 	canvas.TextCode("hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 0.3, shapecolor, "gray")
@@ -121,7 +134,7 @@ func main() {
 	//////////////////////////////////////////////////////////////////////////////////////////////
 
 	// usage
-	canvas.Font = gpdf.Sans
+	canvas.StdFont = gpdf.Sans
 	canvas.NewPage(ps)
 	canvas.Background("black")
 
