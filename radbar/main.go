@@ -1,3 +1,4 @@
+// radbar - radial barchart
 package main
 
 import (
@@ -14,9 +15,9 @@ import (
 )
 
 const (
-	smallest     = -math.MaxFloat64
-	canvasWidth  = 792
-	canvasHeight = 612
+	smallest   = -math.MaxFloat64
+	beginAngle = 0.0
+	endAngle   = 180.0
 )
 
 type NameValue struct {
@@ -31,8 +32,10 @@ type options struct {
 	radius float64
 	xint   float64
 	yint   float64
+	ymax   float64
 	color  string
 	title  string
+	output string
 }
 
 // vmap maps one interval to another
@@ -40,6 +43,7 @@ func vmap(value float64, low1 float64, high1 float64, low2 float64, high2 float6
 	return low2 + (high2-low2)*(value-low1)/(high1-low1)
 }
 
+// readData reads tab separated name, value pairs
 func readData(r io.Reader) ([]NameValue, float64, string, error) {
 	var (
 		data  []NameValue
@@ -76,95 +80,122 @@ func readData(r io.Reader) ([]NameValue, float64, string, error) {
 	return data, maxval, title, scanner.Err()
 }
 
-func colorop(s string) (string, float64) {
-	c := strings.Split(s, ":")
-	if len(c) == 2 {
-		o, _ := strconv.ParseFloat(c[1], 64)
-		return c[0], o
+// radbar makes a radial bar chart
+func radbar(canvas *gpdf.Canvas, w io.Writer, r io.Reader, opts options) error {
+	// read data
+	data, maxval, title, err := readData(r)
+	if err != nil {
+		return err
 	}
-	return s, 100
-}
-
-func radbar(canvas *gpdf.Canvas, filename string, data []NameValue, maxval float64, opts options) {
-	//grid(w, 2.5)
+	if opts.title == "" {
+		opts.title = title
+	}
+	if opts.ymax == -1 {
+		opts.ymax = maxval
+	}
 	xint := opts.xint
 	rad := opts.radius
 	lw := opts.lw
 	yint := opts.yint
+	maxval = opts.ymax
 	ts := 2.5
+
+	margin := ts
 	cx, cy, color := opts.cx, opts.cy, opts.color
+
+	// title
 	if len(opts.title) > 0 {
 		canvas.CText(cx, cy+rad+(ts*2), ts, opts.title, "black")
 	}
+	// data axis
 	canvas.Circle(cx, cy, 1, color)
-
-	for a := 0.0; a <= 180; a += 180 / yint {
-		px, py := canvas.PolarDegrees(cx, cy, rad+(xint/2), a)
+	for i := 0.0; i <= maxval; i += yint {
+		a := vmap(i, 0, maxval, endAngle, beginAngle)
+		px, py := canvas.PolarDegrees(cx, cy, (rad+(xint/2))-margin, a)
 		canvas.Line(cx, cy, px, py, 0.1, "gray:50")
-		l := vmap(a, 0, 180, 1000, 0)
-		canvas.CText(px, py, ts/2, fmt.Sprintf("%v", l), "black")
+		canvas.CText(px, py, ts/2, strconv.FormatFloat(i, 'g', -1, 64), "black")
 	}
-
+	// data arcs
 	x := rad * 2
 	lx := cx - rad
 	li := xint / 2
 	hts := ts / 2
+	l1y := cy - hts
+	l2y := l1y - (hts * .6)
 	for i := range data {
-		v := vmap(data[i].value, 0, maxval, 180, 0)
+		// staggered x labels
 		if i%2 == 0 {
-			canvas.CText(lx, cy-hts, min(li, hts), data[i].name, "black")
+			canvas.CText(lx, l1y, min(li, hts), data[i].name, "black")
 		} else {
-			canvas.CText(lx, cy-ts, min(li, hts), data[i].name, "black")
+			canvas.CText(lx, l2y, min(li, hts), data[i].name, "black")
 		}
+		// map data to an angle
+		v := vmap(data[i].value, 0, maxval, endAngle, beginAngle)
 		canvas.Arc(cx, cy, x/2, v, 180, lw, color)
 		x -= xint
 		lx += li
 	}
+	// write output
+	_, err = canvas.Creator.WriteTo(w)
+	return err
 }
 
 func main() {
 	var opts options
-	flag.StringVar(&opts.color, "color", "maroon", "line color")
+	flag.StringVar(&opts.color, "color", "steelblue", "line color")
 	flag.StringVar(&opts.title, "title", "", "title")
+	flag.StringVar(&opts.output, "o", "", "output file")
 	flag.Float64Var(&opts.cx, "cx", 50, "center x")
 	flag.Float64Var(&opts.cy, "cy", 40, "center y")
 	flag.Float64Var(&opts.lw, "lw", 0.1, "line width")
 	flag.Float64Var(&opts.xint, "xint", 2, "x-interval")
 	flag.Float64Var(&opts.yint, "yint", 10, "y-interval")
+	flag.Float64Var(&opts.ymax, "ymax", -1.0, "y-max")
 	flag.Float64Var(&opts.radius, "r", 45, "chart radius")
 	flag.Parse()
 
-	data, maxval, title, err := readData(os.Stdin)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-	if opts.title == "" {
-		opts.title = title
-	}
-
-	output := "f.pdf"
+	var (
+		r   io.Reader
+		w   io.Writer
+		err error
+	)
+	// default reader and writer
+	r = os.Stdin
+	w = os.Stdout
+	// open input file; if no file specified for input, use stdin
 	args := flag.Args()
 	if len(args) > 0 {
-		output = args[0]
+		r, err = os.Open(args[0])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(1)
+		}
 	}
-	ps := gpdf.Letter
-	canvas, err := gpdf.SetupCanvas(ps)
+	// create output file; if no file specfied for output, use stdout
+	if len(opts.output) > 0 {
+		w, err = os.Create(opts.output)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%v\n", err)
+			os.Exit(2)
+		}
+	}
+	// set up the canvas
+	canvas, err := gpdf.SetupCanvas(gpdf.Letter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		os.Exit(3)
 	}
-
+	// load the font
 	err = canvas.LoadFont("PublicSans-Regular.ttf")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		os.Exit(4)
 	}
-
-	radbar(canvas, output, data, maxval, opts)
-	err = canvas.Creator.WriteToFile(output)
+	// make the chart
+	err = radbar(canvas, w, r, opts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
+		os.Exit(5)
 	}
+
 }

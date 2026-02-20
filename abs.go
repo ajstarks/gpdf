@@ -74,6 +74,7 @@ func (c *Canvas) AbsBText(x, y, size float64, s string, fillcolor string) {
 
 func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor string) {
 	if c.CustomFont == nil {
+		c.AbsText(x, y, size, s, fillcolor)
 		return
 	}
 	w := c.CustomFont.MeasureString(s, size)
@@ -82,6 +83,7 @@ func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor string) {
 
 func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor string) {
 	if c.CustomFont == nil {
+		c.AbsText(x, y, size, s, fillcolor)
 		return
 	}
 	w := c.CustomFont.MeasureString(s, size)
