@@ -30,10 +30,24 @@ type Canvas struct {
 }
 
 // SetupCanvas initialized the canvas object
-func SetupCanvas(pagesize creator.PageSize) (*Canvas, error) {
+func SetupCanvasStdSize(pagesize creator.PageSize) (*Canvas, error) {
 	canvas := new(Canvas)
 	c := creator.New()
 	page, err := c.NewPageWithSize(pagesize)
+	if err != nil {
+		return nil, err
+	}
+	canvas.Creator = c
+	canvas.Page = page
+	canvas.StdFont = Sans
+	canvas.CustomFont = nil
+	canvas.Width, canvas.Height = page.Width(), page.Height()
+	return canvas, nil
+}
+func SetupCanvas(width, height float64) (*Canvas, error) {
+	canvas := new(Canvas)
+	c := creator.New()
+	page, err := c.NewPageWithDimensions(width, height)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +70,8 @@ func (c *Canvas) LoadFont(path string) error {
 }
 
 // NewPage starts a new Page
-func (c *Canvas) NewPage(pagesize creator.PageSize) error {
+func (c *Canvas) NewPage(width, height float64) error {
 	var err error
-	c.Page, err = c.Creator.NewPageWithSize(pagesize)
+	c.Page, err = c.Creator.NewPageWithDimensions(width, height)
 	return err
 }

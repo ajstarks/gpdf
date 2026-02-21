@@ -88,9 +88,16 @@ func (c *Canvas) EText(x, y, size float64, s string, color string) {
 	c.AbsEText(x, y, size, s, color)
 }
 
+// RText places text end-aligned at (x,y) at the specified size and color
+func (c *Canvas) RText(x, y, size, angle float64, s string, color string) {
+	x, y = dimen(x, y, c.Width, c.Height)
+	size = pct(size, c.Width)
+	c.AbsRText(x, y, size, angle, s, color)
+}
+
 // TextCode shows a text file, upper left at (x,y), dimensions (w, h) at size
 // the border of the block background and textcolors are also specified.
-func (c *Canvas) TextCode(name string, x, y, w, h, size, border float64, bgcolor, txcolor string) {
+func (c *Canvas) TextCode(name string, x, y, w, h, size, ls, border float64, bgcolor, txcolor string) {
 	cf := c.CustomFont
 	if c.CustomFont != nil {
 		cf = c.CustomFont
@@ -102,14 +109,14 @@ func (c *Canvas) TextCode(name string, x, y, w, h, size, border float64, bgcolor
 	c.CornerRect(x, y, w, h, bgcolor)
 	r, err := os.Open(name)
 	if err != nil {
-		c.CText(x+(size/2), y-(size/2), size, "File not found", "red")
+		c.Text(x+(w/2), y-(h/2), w/20, "File not found", "red")
 		return
 	}
 	scanner := bufio.NewScanner(r)
 	y -= size
 	for scanner.Scan() {
-		c.Text(x+size, y, size, scanner.Text(), txcolor)
-		y -= size * 1.2
+		c.Text(x+(size/2), y-(size/2), size, scanner.Text(), txcolor)
+		y -= (size * ls)
 	}
 	c.StdFont = pf
 	c.CustomFont = cf

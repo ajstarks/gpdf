@@ -33,6 +33,7 @@ type options struct {
 	xint   float64
 	yint   float64
 	ymax   float64
+	rtext  float64
 	color  string
 	title  string
 	output string
@@ -124,10 +125,14 @@ func radbar(canvas *gpdf.Canvas, w io.Writer, r io.Reader, opts options) error {
 	l2y := l1y - (hts * .6)
 	for i := range data {
 		// staggered x labels
-		if i%2 == 0 {
-			canvas.CText(lx, l1y, min(li, hts), data[i].name, "black")
+		if opts.rtext == 0 {
+			if i%2 == 0 {
+				canvas.CText(lx, l1y, min(li, hts), data[i].name, "black")
+			} else {
+				canvas.CText(lx, l2y, min(li, hts), data[i].name, "black")
+			}
 		} else {
-			canvas.CText(lx, l2y, min(li, hts), data[i].name, "black")
+			canvas.RText(lx, l2y-ts, min(li, hts), opts.rtext, data[i].name, "black")
 		}
 		// map data to an angle
 		v := vmap(data[i].value, 0, maxval, endAngle, beginAngle)
@@ -151,6 +156,7 @@ func main() {
 	flag.Float64Var(&opts.xint, "xint", 2, "x-interval")
 	flag.Float64Var(&opts.yint, "yint", 10, "y-interval")
 	flag.Float64Var(&opts.ymax, "ymax", -1.0, "y-max")
+	flag.Float64Var(&opts.rtext, "rot", 0, "text rotation for labels")
 	flag.Float64Var(&opts.radius, "r", 45, "chart radius")
 	flag.Parse()
 
@@ -180,7 +186,7 @@ func main() {
 		}
 	}
 	// set up the canvas
-	canvas, err := gpdf.SetupCanvas(gpdf.Letter)
+	canvas, err := gpdf.SetupCanvas(792, 612)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(3)

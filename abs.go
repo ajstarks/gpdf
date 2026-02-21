@@ -90,6 +90,15 @@ func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor string) {
 	c.AbsText(x-w, y, size, s, fillcolor)
 }
 
+func (c *Canvas) AbsRText(x, y, size, angle float64, s string, fillcolor string) {
+	color := ColorLookup(fillcolor)
+	if c.CustomFont == nil {
+		c.Page.AddTextColorRotated(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle)
+	} else {
+		c.Page.AddTextCustomFontColorRotated(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle)
+	}
+}
+
 func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
 	lx := len(x)
 	if lx != len(y) {
