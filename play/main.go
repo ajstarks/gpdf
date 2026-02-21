@@ -1,28 +1,38 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand/v2"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/ajstarks/gpdf"
 )
 
 const (
-	mm2pt = 2.83464 // mm to pt conversion
+	mm2pt        = 2.83464 // mm to pt conversion
+	letterWidth  = 792
+	letterHeight = 612
 )
 
 // PageDimen describes page dimensions
 // the unit field is used to convert to pt.
 type PageDimen struct {
-	width, height, unit float64
+	width  float64
+	height float64
+	unit   float64
 }
 
+// command line options
 type options struct {
-	fontname string
-	pagesize string
-	width    float64
-	height   float64
+	sansfont   string
+	serifont   string
+	monofont   string
+	symbolfont string
+	pagesize   string
+	output     string
 }
 
 // fontmap maps generic font names to specific implementation names
@@ -44,24 +54,47 @@ var pagemap = map[string]PageDimen{
 }
 
 func pagedim(s string) (float64, float64) {
+	// try lookup first...
 	v, ok := pagemap[s]
-	if !ok {
-		return 792, 612
+	if ok {
+		return v.width, v.height
 	}
-	return v.width, v.height
+	// lookup fails, try WxH
+	fields := strings.Split(s, "x")
+	if len(fields) != 2 {
+		return letterWidth, letterHeight
+	}
+	w, err := strconv.ParseFloat(fields[0], 64)
+	if err != nil {
+		return letterWidth, letterHeight
+	}
+	h, err := strconv.ParseFloat(fields[1], 64)
+	if err != nil {
+		return letterWidth, letterHeight
+	}
+	return w, h
 }
 
 func main() {
+	var opts options
+	flag.StringVar(&opts.pagesize, "pagesize", "Letter", "page size (name or WxH")
+	flag.StringVar(&opts.sansfont, "sans", "sans.ttf", "sans font")
+	flag.StringVar(&opts.serifont, "serif", "serif.ttf", "serif font")
+	flag.StringVar(&opts.monofont, "mono", "mono.ttf", "monofont font")
+	flag.StringVar(&opts.symbolfont, "symbol", "symbol.ttf", "default font")
+	flag.StringVar(&opts.output, "o", "f.pdf", "output file")
+	flag.Parse()
 
-	var output = "f.pdf"
-	if len(os.Args) > 1 {
-		output = os.Args[1]
+	fontmap["mono"] = opts.monofont
+	fontmap["sans"] = opts.sansfont
+	fontmap["serif"] = opts.serifont
+	fontmap["symbol"] = opts.symbolfont
+	output := opts.output
+	args := flag.Args()
+	if len(args) > 0 {
+		output = args[0]
 	}
-	fontmap["mono"] = "mono.ttf"
-	fontmap["sans"] = "sans.ttf"
-	fontmap["serif"] = "serif.ttf"
-
-	cw, ch := pagedim("Letter")
+	cw, ch := pagedim(opts.pagesize)
 	canvas, err := gpdf.SetupCanvas(cw, ch)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -74,7 +107,6 @@ func main() {
 	}
 
 	// API
-	//////////////////////////////////////////////////////////////////////////////
 	labels := []string{
 		"Arc(x,y, r,a1,a2, size,color)",
 		"Circle(x,y, r, color)",
@@ -105,7 +137,6 @@ func main() {
 	canvas.Background("black")
 	canvas.Text(c1, 95, 3, "Generate PDF (gpdf) API", "white")
 	canvas.StdFont = gpdf.Mono
-
 	for i := range labels {
 		canvas.Text(c1, y, ts, labels[i], tcolor)
 		y -= yspace
@@ -181,7 +212,6 @@ func main() {
 	canvas.Grid(c3, c4, gy1, gy2, 0.1, 2.5, shapecolor)
 	canvas.Circle(85, gy1, dotsize, dotcolor)
 	canvas.Circle(95, gy2, dotsize, dotcolor)
-	//////////////////////////////////////////////////////////////////////////////////////////////
 
 	// usage
 	canvas.NewPage(cw, ch)
@@ -192,16 +222,14 @@ func main() {
 		yr := rand.Float64() * 100
 		canvas.Circle(xr, yr, 0.25, "white")
 	}
-
 	canvas.Circle(50, 0, 50, "blue")
 	canvas.CText(50, 20, 10, "hello, world", "white")
 	codesize := 1.0
 	border := codesize / 8
 	canvas.TextCode("excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
-	//////////////////////////////////////////////////////////////////////////////////////////////
 
 	canvas.NewPage(cw, ch)
-	err = canvas.LoadFont("sans.ttf")
+	err = canvas.LoadFont(fontmap["serif"])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
