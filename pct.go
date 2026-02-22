@@ -1,9 +1,7 @@
 package gpdf
 
 import (
-	"bufio"
 	"math"
-	"os"
 	"strconv"
 )
 
@@ -62,6 +60,14 @@ func (c *Canvas) Rect(x, y, w, h float64, color string) {
 	c.AbsCenterRect(x, y, w, h, color)
 }
 
+// Square makes a square centered at (x,y), at size w
+func (c *Canvas) Square(x, y, w float64, color string) {
+	x, y = dimen(x, y, c.Width, c.Height)
+	w = pct(w, c.Height)
+	h := pct(100, w)
+	c.AbsCenterRect(x, y, w, h, color)
+}
+
 // Text places text at (x,y) at the specified size and color
 func (c *Canvas) Text(x, y, size float64, s string, color string) {
 	x, y = dimen(x, y, c.Width, c.Height)
@@ -95,39 +101,24 @@ func (c *Canvas) RText(x, y, size, angle float64, s string, color string) {
 	c.AbsRText(x, y, size, angle, s, color)
 }
 
-// TextCode shows a text file, upper left at (x,y), dimensions (w, h) at size
-// the border of the block background and textcolors are also specified.
-func (c *Canvas) TextCode(name string, x, y, w, h, size, ls, border float64, bgcolor, txcolor string) {
-	cf := c.CustomFont
-	if c.CustomFont != nil {
-		cf = c.CustomFont
-	}
-	c.CustomFont = nil
-	pf := c.StdFont
-	c.StdFont = Mono
-	c.CornerRect(x-border, y+border, w+(border*2), h+(border*2), txcolor)
-	c.CornerRect(x, y, w, h, bgcolor)
-	r, err := os.Open(name)
-	if err != nil {
-		c.Text(x+(w/2), y-(h/2), w/20, "File not found", "red")
-		return
-	}
-	scanner := bufio.NewScanner(r)
-	y -= size
-	for scanner.Scan() {
-		c.Text(x+(size/2), y-(size/2), size, scanner.Text(), txcolor)
-		y -= (size * ls)
-	}
-	c.StdFont = pf
-	c.CustomFont = cf
-}
-
 // Polygon makes a color filled polygon using the specified coordinates in x and y
 func (c *Canvas) Polygon(x, y []float64, color string) {
 	for i := range x {
 		x[i], y[i] = dimen(x[i], y[i], c.Width, c.Height)
 	}
 	c.AbsPolygon(x, y, color)
+}
+
+// Polyline makes connected lines using coordinates in x and y
+func (c *Canvas) Polyline(x, y []float64, size float64, color string) {
+	lx := len(x)
+	if lx < 3 || lx != len(y) {
+		return
+	}
+	for i := 0; i < lx-1; i++ {
+		c.Line(x[i], y[i], x[i+1], y[i+1], size, color)
+	}
+	c.Line(x[lx-1], y[lx-1], x[0], y[0], size, color)
 }
 
 // QuadCurve draws a quadradic bezier curve

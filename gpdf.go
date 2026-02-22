@@ -20,6 +20,8 @@ const (
 	Serif = creator.TimesRoman
 )
 
+type CF *creator.CustomFont
+
 // Canvas object
 type Canvas struct {
 	Page          *creator.Page
@@ -60,13 +62,16 @@ func SetupCanvas(width, height float64) (*Canvas, error) {
 }
 
 // LoadFont loads a custom font
-func (c *Canvas) LoadFont(path string) error {
+func (c *Canvas) LoadFontFile(path string) (*creator.CustomFont, error) {
 	f, err := creator.LoadFont(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	return f, nil
+}
+
+func (c *Canvas) SetFont(f *creator.CustomFont) {
 	c.CustomFont = f
-	return nil
 }
 
 // NewPage starts a new Page

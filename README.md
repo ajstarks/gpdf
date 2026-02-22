@@ -29,6 +29,10 @@ Generate PDF using high-level objects (text, lines, curves, shapes) using a perc
 
 ```(c *Canvas) Rect(x, y, w, h float64, color string)```
 
+## Filled square centered at (x,y), both sized are w.
+
+```(c *Canvas) Square(x,y, w, float64 color string)```
+
 ## Text beginning at (x,y) at the specified size and color
 
 ```(c *Canvas) Text(x, y, size float64, s string, color string)```
@@ -47,13 +51,13 @@ Generate PDF using high-level objects (text, lines, curves, shapes) using a perc
 
 ```(c *Canvas) RText(x, y, size, angle float64, s string, color string)```
 
-## File contents in a box at (x,y) with dimensions (w,h)
-
-```(c *Canvas) TextCode(name string, x, y, w, h, size, linespacing, border float64, bgcolor, txcolor string)```
-
 ## Filled polygon with specified coordinates
 
 ```(c *Canvas) Polygon(x, y []float64, color string)```
+
+## Stroked polyline with specified coordinates
+
+```(c *Canvas) Polyline(x, y []float64, size, color string)```
 
 ## Quadradic Bezier curve; begin (bx,by), control (cx,cy), end (ex,ey), with specifed stroke size and color
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"math/rand/v2"
@@ -35,8 +36,11 @@ type options struct {
 	output     string
 }
 
+// convert tabs to spaces
+var codemap = strings.NewReplacer("\t", "    ")
+
 // fontmap maps generic font names to specific implementation names
-var fontmap = map[string]string{}
+var fontmap = map[string]gpdf.CF{}
 
 // pagemap defines page dimensions
 var pagemap = map[string]PageDimen{
@@ -75,6 +79,38 @@ func pagedim(s string) (float64, float64) {
 	return w, h
 }
 
+func lf(c *gpdf.Canvas, name, file string) {
+	f, err := c.LoadFontFile(file)
+	if err != nil {
+		fontmap[name] = nil
+	} else {
+		fontmap[name] = f
+	}
+}
+
+// TextCode shows a text file, upper left at (x,y), dimensions (w, h) at size
+// the border of the block background and textcolors are also specified.
+func TextCode(c *gpdf.Canvas, name string, x, y, w, h, size, ls, border float64, bgcolor, txcolor string) {
+	cf := c.CustomFont
+	if c.CustomFont != nil {
+		cf = c.CustomFont
+	}
+	c.CornerRect(x-border, y+border, w+(border*2), h+(border*2), txcolor)
+	c.CornerRect(x, y, w, h, bgcolor)
+	r, err := os.Open(name)
+	if err != nil {
+		c.Text(x+(w/2), y-(h/2), w/20, "File not found", "red")
+		return
+	}
+	scanner := bufio.NewScanner(r)
+	y -= size
+	for scanner.Scan() {
+		c.Text(x+(size/2), y-(size/2), size, codemap.Replace(scanner.Text()), txcolor)
+		y -= (size * ls)
+	}
+	c.CustomFont = cf
+}
+
 func main() {
 	var opts options
 	flag.StringVar(&opts.pagesize, "pagesize", "Letter", "page size (name or WxH")
@@ -85,10 +121,6 @@ func main() {
 	flag.StringVar(&opts.output, "o", "f.pdf", "output file")
 	flag.Parse()
 
-	fontmap["mono"] = opts.monofont
-	fontmap["sans"] = opts.sansfont
-	fontmap["serif"] = opts.serifont
-	fontmap["symbol"] = opts.symbolfont
 	output := opts.output
 	args := flag.Args()
 	if len(args) > 0 {
@@ -100,11 +132,12 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-	err = canvas.LoadFont(fontmap["sans"])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+	lf(canvas, "sans", opts.sansfont)
+	lf(canvas, "serif", opts.serifont)
+	lf(canvas, "mono", opts.monofont)
+	lf(canvas, "symbol", opts.symbolfont)
+
+	canvas.SetFont(fontmap["sans"])
 
 	// API
 	labels := []string{
@@ -113,11 +146,11 @@ func main() {
 		"Ellipse(x,y, w,h, color)",
 		"Image(x,y, w,h, name)",
 		"Line(x1,y1, x2,y2, size, color)",
-		"Polygon(x,y, color)",
+		"Polygon(x,y, color), Polyline(x,y size, color)",
 		"QuadCurve(bx,by, cx,cy, ex,ey, size, color)",
-		"Rect(x,y, w,h, color)",
-		"{B,C,E}Text(x,y, size, color),   RText(x,y, size,angle, color)",
-		"TextCode(name, x,y,w,h, size,border, bcolor,tcolor)",
+		"Square(x,y, w, color), Rect(x, y, w,h, color)",
+		"{B,C,E}Text(x,y, size, color), RText(x,y, size,angle, color)",
+		"TextCode(name, x,y,w,h, size,spacing,border, bcolor,tcolor)",
 		"Grid(x1,x2, y1,y2, size, incr, color)",
 		"Background(color)",
 	}
@@ -129,14 +162,16 @@ func main() {
 	c2 := c1 + 85
 	c3 := c2 - 5
 	c4 := c2 + 5
-	ts := 2.5
+	ts := 2.0
 	dotsize := 0.4
 	shapecolor := "rgb(200,200,200)" //"lightgray"
 	dotcolor := "white"
 	tcolor := "gray"
-	canvas.Background("black")
-	canvas.Text(c1, 95, 3, "Generate PDF (gpdf) API", "white")
-	canvas.StdFont = gpdf.Mono
+	bgcolor := "black"
+	fgcolor := dotcolor
+	canvas.Background(bgcolor)
+	canvas.Text(c1, 92, 4, "Generate PDF (gpdf) API", "white")
+	canvas.SetFont(fontmap["mono"])
 	for i := range labels {
 		canvas.Text(c1, y, ts, labels[i], tcolor)
 		y -= yspace
@@ -169,6 +204,13 @@ func main() {
 	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
 	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
 	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
+	canvas.Polyline(xp, yp, 0.2, fgcolor)
+	xp[0] -= 15.0
+	xp[1] -= 15.0
+	xp[2] -= 15.0
+	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
+	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
+	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
 	canvas.Polygon(xp, yp, shapecolor)
 	y -= yspace
 	// quadcurve
@@ -184,12 +226,14 @@ func main() {
 	canvas.Circle(ex, ey, dotsize, dotcolor)
 	y -= yspace
 	// rect
-	canvas.Rect(c2, y, 4, 5, shapecolor)
+	canvas.Square(c2-10, y, 5, shapecolor)
+	canvas.Circle(c2-10, y, dotsize, dotcolor)
+	canvas.Rect(c2, y, 7, 5, shapecolor)
 	canvas.Circle(c2, y, dotsize, dotcolor)
 	y -= yspace
 	// text
-	tc0 := c2 - 16
-	tc1 := c2 - 8
+	tc0 := c2 - 18
+	tc1 := c2 - 9
 	tc2 := c2
 	tc3 := c2 + 3
 	canvas.BText(tc0, y, 2, "hello", shapecolor)
@@ -203,7 +247,8 @@ func main() {
 	//canvas.Etext()
 	y -= yspace
 	// textcode
-	canvas.TextCode("hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 1.6, 0.3, shapecolor, "gray")
+	canvas.SetFont(fontmap["mono"])
+	TextCode(canvas, "hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 1.6, 0.3, shapecolor, "gray")
 	canvas.Circle(c3, y+4, dotsize, dotcolor)
 	y -= yspace
 	// grid
@@ -215,8 +260,7 @@ func main() {
 
 	// usage
 	canvas.NewPage(cw, ch)
-	canvas.Background("black")
-
+	canvas.Background(bgcolor)
 	for range 500 {
 		xr := rand.Float64() * 100
 		yr := rand.Float64() * 100
@@ -226,14 +270,11 @@ func main() {
 	canvas.CText(50, 20, 10, "hello, world", "white")
 	codesize := 1.0
 	border := codesize / 8
-	canvas.TextCode("excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
+	canvas.SetFont(fontmap["mono"])
+	TextCode(canvas, "excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
 
 	canvas.NewPage(cw, ch)
-	err = canvas.LoadFont(fontmap["serif"])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
+	canvas.SetFont(fontmap["mono"])
 	palette := []string{"red", "green", "blue", "orange", "black"}
 	a := 0.0
 	n := 10
@@ -242,7 +283,6 @@ func main() {
 		canvas.RText(50, 50, 50, a, "i", color)
 		a += 360 / float64(n)
 	}
-
 	err = canvas.Creator.WriteToFile(output)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)

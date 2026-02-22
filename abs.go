@@ -101,7 +101,7 @@ func (c *Canvas) AbsRText(x, y, size, angle float64, s string, fillcolor string)
 
 func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
 	lx := len(x)
-	if lx != len(y) {
+	if lx < 3 || lx != len(y) {
 		return
 	}
 	coords := make([]creator.Point, lx)
