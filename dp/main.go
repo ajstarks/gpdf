@@ -40,6 +40,8 @@ type options struct {
 	pagesize   string
 	output     string
 	fontdir    string
+	author     string
+	title      string
 	gridpct    float64
 }
 
@@ -160,6 +162,15 @@ func setopacity(v float64) float64 {
 		o = 100
 	}
 	return o
+}
+
+func setmetadata(canvas *gpdf.Canvas) {
+	if len(opts.author) > 0 {
+		canvas.SetAuthor(opts.author)
+	}
+	if len(opts.title) > 0 {
+		canvas.SetTitle(opts.title)
+	}
 }
 
 // cacheimages caches image objects for faster access
@@ -433,10 +444,8 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 	}
 	if len(slide.Gradcolor1) > 0 && len(slide.Gradcolor2) > 0 {
 		canvas.GradRect(0, 0, 100, 100, slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
-		// println("gradient", slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
 	} else {
 		canvas.Background(bg)
-		// println("background", bg)
 	}
 
 	// process each element according to the layer list
@@ -513,6 +522,7 @@ func dodeck(w io.Writer, r io.ReadCloser, cw, ch float64, begin, end int) {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
+	setmetadata(canvas)
 	// load default fonts
 	loadDeckFont(canvas, "sans", opts.sansfont)
 	loadDeckFont(canvas, "serif", opts.serifont)
@@ -538,6 +548,8 @@ func dodeck(w io.Writer, r io.ReadCloser, cw, ch float64, begin, end int) {
 // main: process commandline options, perform i/o, and page setup
 func main() {
 	// parse command line options
+	flag.StringVar(&opts.author, "author", "", "document author")
+	flag.StringVar(&opts.title, "title", "", "document title")
 	flag.StringVar(&opts.sansfont, "sans", "PublicSans-Regular", "sans font")
 	flag.StringVar(&opts.monofont, "mono", "Inconsolata-Medium", "mono font")
 	flag.StringVar(&opts.serifont, "serif", "Charter-Regular", "sans font")

@@ -52,7 +52,6 @@ func readData(r io.Reader) ([]NameValue, float64, string, error) {
 		title string
 	)
 	maxval := smallest
-
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		t := scanner.Text()

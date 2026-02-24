@@ -7,7 +7,7 @@ deck
 
 		square 25 90 10 "green"
 		rect 50 90 30 10 "red"
-		circle 75 90 10 "blue"
+		ellipse 75 90 10 5 "blue"
 
 		textfile "qb.txt" 75 70 2
 		textcode "hw" 35 75 25 1

@@ -100,3 +100,13 @@ func (c *Canvas) NewPage(width, height float64) error {
 	c.Page, err = c.Creator.NewPageWithDimensions(width, height)
 	return err
 }
+
+// SetAuthor sets the document author
+func (c *Canvas) SetAuthor(s string) {
+	c.Creator.SetAuthor(s)
+}
+
+// SetTitle sets the document title
+func (c *Canvas) SetTitle(s string) {
+	c.Creator.SetTitle(s)
+}
