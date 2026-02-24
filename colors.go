@@ -325,5 +325,5 @@ func hsv2rgb(h, s, v float64) (float64, float64, float64) {
 	r += m
 	g += m
 	b += m
-	return (r * 255), (g * 255), (b * 255)
+	return r, g, b
 }

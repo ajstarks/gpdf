@@ -4,10 +4,8 @@ import (
 	"github.com/coregx/gxpdf/creator"
 )
 
-func (c *Canvas) AbsLine(x0, y0, x1, y1, size float64, strokecolor string) {
-	clr, o := colorop(strokecolor)
-	color := ColorLookup(clr)
-	color.A = o / 100
+func (c *Canvas) AbsLine(x0, y0, x1, y1, size float64, color creator.ColorRGBA) {
+	//println("AbsLine", color.A)
 	c.Page.DrawLine(x0, y0, x1, y1,
 		&creator.LineOptions{
 			Color: creator.Color{
@@ -20,8 +18,8 @@ func (c *Canvas) AbsLine(x0, y0, x1, y1, size float64, strokecolor string) {
 	)
 }
 
-func (c *Canvas) AbsCircle(x, y, r float64, fillcolor string) {
-	color := ColorLookup(fillcolor)
+func (c *Canvas) AbsCircle(x, y, r float64, color creator.ColorRGBA) {
+	// println("AbsCircle", color.A)
 	c.Page.DrawCircle(x, y, r, &creator.CircleOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -32,8 +30,8 @@ func (c *Canvas) AbsCircle(x, y, r float64, fillcolor string) {
 	)
 }
 
-func (c *Canvas) AbsEllipse(x, y, w, h float64, fillcolor string) {
-	color := ColorLookup(fillcolor)
+func (c *Canvas) AbsEllipse(x, y, w, h float64, color creator.ColorRGBA) {
+	//println("AbsEllipse", x, y, w, h, color.R, color.G, color.B, color.A)
 	c.Page.DrawEllipse(x, y, w, h, &creator.EllipseOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -43,8 +41,8 @@ func (c *Canvas) AbsEllipse(x, y, w, h float64, fillcolor string) {
 		Opacity: &color.A})
 }
 
-func (c *Canvas) AbsCornerRect(x, y, w, h float64, fillcolor string) {
-	color := ColorLookup(fillcolor)
+func (c *Canvas) AbsCornerRect(x, y, w, h float64, color creator.ColorRGBA) {
+	// println("AbsCornerRect", color.A)
 	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -55,24 +53,35 @@ func (c *Canvas) AbsCornerRect(x, y, w, h float64, fillcolor string) {
 	)
 }
 
-func (c *Canvas) AbsCenterRect(x, y, w, h float64, fillcolor string) {
-	c.AbsCornerRect(x-w/2, y-h/2, w, h, fillcolor)
+func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGBA, pct float64) {
+	var c1, c2 creator.Color
+	c1.R, c1.G, c1.B = color1.R, color1.G, color1.B
+	c2.R, c2.G, c2.B = color2.R, color2.G, color2.B
+	grad := creator.NewLinearGradient(x, y, x+(w*pct), y+(h*pct))
+	grad.Type = creator.GradientTypeLinear
+	grad.AddColorStop(0, c1)
+	grad.AddColorStop(1, c2)
+	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{FillGradient: grad})
 }
 
-func (c *Canvas) AbsText(x, y, size float64, s string, fillcolor string) {
-	color := ColorLookup(fillcolor)
+func (c *Canvas) AbsCenterRect(x, y, w, h float64, color creator.ColorRGBA) {
+	c.AbsCornerRect(x-w/2, y-h/2, w, h, color)
+}
+
+func (c *Canvas) AbsText(x, y, size float64, s string, color creator.ColorRGBA) {
+	// println("AbsText", color.A)
 	if c.CustomFont == nil {
-		c.Page.AddTextColor(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B})
+		c.Page.AddTextColorAlpha(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, color.A)
 	} else {
-		c.Page.AddTextCustomFontColor(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B})
+		c.Page.AddTextCustomFontColorAlpha(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, color.A)
 	}
 }
 
-func (c *Canvas) AbsBText(x, y, size float64, s string, fillcolor string) {
+func (c *Canvas) AbsBText(x, y, size float64, s string, fillcolor creator.ColorRGBA) {
 	c.AbsText(x, y, size, s, fillcolor)
 }
 
-func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor string) {
+func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor creator.ColorRGBA) {
 	if c.CustomFont == nil {
 		c.AbsText(x, y, size, s, fillcolor)
 		return
@@ -81,7 +90,7 @@ func (c *Canvas) AbsCText(x, y, size float64, s string, fillcolor string) {
 	c.AbsText(x-(w/2), y, size, s, fillcolor)
 }
 
-func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor string) {
+func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor creator.ColorRGBA) {
 	if c.CustomFont == nil {
 		c.AbsText(x, y, size, s, fillcolor)
 		return
@@ -90,16 +99,21 @@ func (c *Canvas) AbsEText(x, y, size float64, s string, fillcolor string) {
 	c.AbsText(x-w, y, size, s, fillcolor)
 }
 
-func (c *Canvas) AbsRText(x, y, size, angle float64, s string, fillcolor string) {
-	color := ColorLookup(fillcolor)
+func (c *Canvas) AbsRText(x, y, size, angle float64, s string, color creator.ColorRGBA) {
 	if c.CustomFont == nil {
-		c.Page.AddTextColorRotated(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle)
+		c.Page.AddTextColorRotatedAlpha(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle, color.A)
 	} else {
-		c.Page.AddTextCustomFontColorRotated(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle)
+		c.Page.AddTextCustomFontColorRotatedAlpha(s, x, y, c.CustomFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, angle, color.A)
 	}
 }
 
-func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
+// whitespace determines if a rune is whitespace
+func whitespace(r rune) bool {
+	return r == ' ' || r == '\n' || r == '\t'
+}
+
+func (c *Canvas) AbsPolygon(x, y []float64, color creator.ColorRGBA) {
+	// println("AbsPolygon", color.A)
 	lx := len(x)
 	if lx < 3 || lx != len(y) {
 		return
@@ -109,7 +123,6 @@ func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
 		coords[i].X = x[i]
 		coords[i].Y = y[i]
 	}
-	color := ColorLookup(fillcolor)
 	c.Page.DrawPolygon(coords, &creator.PolygonOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -120,8 +133,25 @@ func (c *Canvas) AbsPolygon(x, y []float64, fillcolor string) {
 	)
 }
 
-func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64, strokecolor string) {
-	color := ColorLookup(strokecolor)
+func (c *Canvas) AbsQuadBezier(bx, by, cx, cy, ex, ey, size float64, color creator.ColorRGBA) {
+	// println("AbsQuad Bezier", color.A)
+	bpoints := []creator.QuadBezierSegment{
+		{
+			Start:   creator.Point{X: bx, Y: by},
+			Control: creator.Point{X: cx, Y: cy},
+			End:     creator.Point{X: ex, Y: ey},
+		},
+	}
+	c.Page.DrawQuadBezierCurve(bpoints, &creator.BezierOptions{
+		Color: creator.Color{
+			R: color.R,
+			G: color.G,
+			B: color.B,
+		}, Width: size, Opacity: &color.A})
+}
+
+func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64, color creator.ColorRGBA) {
+	// println("AbsCubic Bezier", color.A)
 	bpoints := []creator.BezierSegment{
 		{
 			Start: creator.Point{X: bx, Y: by},
@@ -135,20 +165,14 @@ func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64
 			R: color.R,
 			G: color.G,
 			B: color.B,
-		}, Width: size})
+		}, Width: size, Opacity: &color.A})
 }
 
 func (c *Canvas) AbsImage(x, y, w, h float64, name string) error {
+	//println(name, x, y, w, h)
 	img, err := creator.LoadImage(name)
 	if err != nil {
 		return err
-	}
-	if h == 0 { // scaled image if height is zero
-		imw := float64(img.Width())
-		imh := float64(img.Height())
-		scale := w / 100
-		w = imw * scale
-		h = imh * scale
 	}
 	err = c.Page.DrawImage(img, x, y, w, h)
 	if err != nil {
@@ -157,21 +181,25 @@ func (c *Canvas) AbsImage(x, y, w, h float64, name string) error {
 	return nil
 }
 
-func (c *Canvas) AbsCenterImage(x, y, w, h float64, name string) error {
+func (c *Canvas) AbsCenterImageName(x, y, w, h float64, name string) error {
+	//println(name, x, y, w, h)
 	img, err := creator.LoadImage(name)
 	if err != nil {
 		return err
 	}
-	imw := float64(img.Width())
-	imh := float64(img.Height())
-	if h == 0 { // scaled image if height is zero
-		scale := w / 100
-		w = imw * scale
-		h = imh * scale
-	}
 	x -= w / 2
 	y -= h / 2
 	err = c.Page.DrawImage(img, x, y, w, h)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Canvas) AbsCenterImage(x, y, w, h float64, img *creator.Image) error {
+	x -= w / 2
+	y -= h / 2
+	err := c.Page.DrawImage(img, x, y, w, h)
 	if err != nil {
 		return err
 	}

@@ -144,10 +144,10 @@ func main() {
 		"Arc(x,y, r,a1,a2, size,color)",
 		"Circle(x,y, r, color)",
 		"Ellipse(x,y, w,h, color)",
-		"Image(x,y, w,h, name)",
+		"ImageName(x,y, w,h, name)",
 		"Line(x1,y1, x2,y2, size, color)",
 		"Polygon(x,y, color), Polyline(x,y size, color)",
-		"QuadCurve(bx,by, cx,cy, ex,ey, size, color)",
+		"Curve(bx,by, cx,cy, ex,ey, size, color)",
 		"Square(x,y, w, color), Rect(x, y, w,h, color)",
 		"{B,C,E}Text(x,y, size, color), RText(x,y, size,angle, color)",
 		"TextCode(name, x,y,w,h, size,spacing,border, bcolor,tcolor)",
@@ -190,7 +190,7 @@ func main() {
 	canvas.Circle(c2, y, dotsize, dotcolor)
 	y -= yspace
 	// image
-	canvas.Image(c2, y, 64, 48, "follow.jpg")
+	canvas.ImageName(c2, y, 64, 48, "follow.jpg")
 	canvas.Circle(c2, y, dotsize, dotcolor)
 	y -= yspace
 	// line
@@ -220,7 +220,7 @@ func main() {
 	cy := y + yspace2
 	ex := c4
 	ey := y
-	canvas.QuadCurve(bx, by, cx, cy, ex, ey, lw, shapecolor)
+	canvas.Curve(bx, by, cx, cy, ex, ey, lw, shapecolor)
 	canvas.Circle(bx, by, dotsize, dotcolor)
 	canvas.Circle(cx, cy, dotsize, dotcolor)
 	canvas.Circle(ex, ey, dotsize, dotcolor)
@@ -274,14 +274,17 @@ func main() {
 	TextCode(canvas, "excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
 
 	canvas.NewPage(cw, ch)
-	canvas.SetFont(fontmap["mono"])
-	palette := []string{"red", "green", "blue", "orange", "black"}
+	canvas.SetFont(fontmap["serif"])
+	palette := []string{"black", "red", "green", "blue", "orange"}
 	a := 0.0
 	n := 10
+	op := 100.0
+	canvas.Circle(50, 50, 2, "red")
 	for i := 0; i < n; i++ {
 		color := palette[i%(len(palette))]
-		canvas.RText(50, 50, 50, a, "i", color)
+		canvas.RText(50, 50, 40, a, "i", color, op)
 		a += 360 / float64(n)
+		op -= 10
 	}
 	err = canvas.Creator.WriteToFile(output)
 	if err != nil {

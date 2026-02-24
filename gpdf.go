@@ -4,7 +4,7 @@ import (
 	"github.com/coregx/gxpdf/creator"
 )
 
-// built-in pagesizes
+// built-in pagesizes and fonts
 const (
 	Letter  = creator.Letter
 	Legal   = creator.Legal
@@ -13,14 +13,18 @@ const (
 	A4      = creator.A4
 	A5      = creator.A5
 	B4      = creator.B4
-)
-const (
+
 	Mono  = creator.Courier
 	Sans  = creator.Helvetica
 	Serif = creator.TimesRoman
 )
 
 type CF *creator.CustomFont
+
+type Pimage struct {
+	Image         *creator.Image
+	Width, Height float64
+}
 
 // Canvas object
 type Canvas struct {
@@ -31,7 +35,7 @@ type Canvas struct {
 	Width, Height float64
 }
 
-// SetupCanvas initialized the canvas object
+// SetupCanvas initializes the canvas object with a standard page size
 func SetupCanvasStdSize(pagesize creator.PageSize) (*Canvas, error) {
 	canvas := new(Canvas)
 	c := creator.New()
@@ -46,6 +50,8 @@ func SetupCanvasStdSize(pagesize creator.PageSize) (*Canvas, error) {
 	canvas.Width, canvas.Height = page.Width(), page.Height()
 	return canvas, nil
 }
+
+// SetupCanvas nitializes the canvas object, with specified dimensions
 func SetupCanvas(width, height float64) (*Canvas, error) {
 	canvas := new(Canvas)
 	c := creator.New()
@@ -70,8 +76,22 @@ func (c *Canvas) LoadFontFile(path string) (*creator.CustomFont, error) {
 	return f, nil
 }
 
+// SetFont specifes the current font
 func (c *Canvas) SetFont(f *creator.CustomFont) {
 	c.CustomFont = f
+}
+
+// LoadImage loads a named image into the Pimage struct
+func (c *Canvas) LoadImage(name string) (Pimage, error) {
+	var p Pimage
+	img, err := creator.LoadImage(name)
+	if err != nil {
+		return p, err
+	}
+	p.Image = img
+	p.Width = float64(img.Width())
+	p.Height = float64(img.Height())
+	return p, nil
 }
 
 // NewPage starts a new Page

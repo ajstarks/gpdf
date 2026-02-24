@@ -192,11 +192,12 @@ func main() {
 		os.Exit(3)
 	}
 	// load the font
-	err = canvas.LoadFont("PublicSans-Regular.ttf")
+	ff, err := canvas.LoadFontFile("PublicSans-Regular.ttf")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(4)
 	}
+	canvas.SetFont(ff)
 	// make the chart
 	err = radbar(canvas, w, r, opts)
 	if err != nil {
