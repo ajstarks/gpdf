@@ -259,7 +259,7 @@ func ellipse(canvas *gpdf.Canvas, e deck.Ellipse) {
 	c := e.Color
 	op := setopacity(e.Opacity)
 	x, y, w, h := e.Xp, e.Yp, e.Wp, e.Hp
-	println("ellipse", x, y, w, h)
+	// println("ellipse", x, y, w, h)
 	if e.Hr == 100 {
 		canvas.Circle(x, y, w/2, c, op)
 	} else {
@@ -433,10 +433,10 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 	}
 	if len(slide.Gradcolor1) > 0 && len(slide.Gradcolor2) > 0 {
 		canvas.GradRect(0, 0, 100, 100, slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
-		println("gradient", slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
+		// println("gradient", slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
 	} else {
 		canvas.Background(bg)
-		println("background", bg)
+		// println("background", bg)
 	}
 
 	// process each element according to the layer list
@@ -464,11 +464,6 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 			}
 		case "ellipse":
 			for _, e := range slide.Ellipse {
-				/*
-					if e.Hr == 0 {
-						e.Hr = ((e.Hp / 100) * ch)
-					}
-				*/
 				ellipse(canvas, e)
 			}
 		case "line":
