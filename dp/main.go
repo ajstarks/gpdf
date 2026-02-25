@@ -42,6 +42,7 @@ type options struct {
 	fontdir    string
 	author     string
 	title      string
+	subject    string
 	gridpct    float64
 }
 
@@ -166,10 +167,13 @@ func setopacity(v float64) float64 {
 
 func setmetadata(canvas *gpdf.Canvas) {
 	if len(opts.author) > 0 {
-		canvas.SetAuthor(opts.author)
+		canvas.Creator.SetAuthor(opts.author)
 	}
 	if len(opts.title) > 0 {
-		canvas.SetTitle(opts.title)
+		canvas.Creator.SetTitle(opts.title)
+	}
+	if len(opts.subject) > 0 {
+		canvas.Creator.SetSubject(opts.subject)
 	}
 }
 
@@ -298,7 +302,7 @@ func curve(canvas *gpdf.Canvas, curve deck.Curve) {
 	x1, y1 := curve.Xp1, curve.Yp1
 	x2, y2 := curve.Xp2, curve.Yp2
 	x3, y3 := curve.Xp3, curve.Yp3
-	sw := (curve.Sp)
+	sw := curve.Sp
 	canvas.QuadCurve(x1, y1, x2, y2, x3, y3, sw, c, op)
 }
 
@@ -345,7 +349,6 @@ func dtext(canvas *gpdf.Canvas, t deck.Text) {
 	if t.Opacity > 0 {
 		op = t.Opacity
 	}
-	//op := setopacity(t.Opacity)
 	canvas.CustomFont = fontmap[t.Font]
 
 	s := t.Tdata
@@ -364,7 +367,7 @@ func dtext(canvas *gpdf.Canvas, t deck.Text) {
 		return
 	}
 	if t.Rotation > 0 {
-		canvas.RText(x, y, t.Rotation, ts, s, c, op)
+		canvas.RText(x, y, ts, t.Rotation, s, c, op)
 		return
 	}
 	switch t.Align {
@@ -550,7 +553,8 @@ func main() {
 	// parse command line options
 	flag.StringVar(&opts.author, "author", "", "document author")
 	flag.StringVar(&opts.title, "title", "", "document title")
-	flag.StringVar(&opts.sansfont, "sans", "PublicSans-Regular", "sans font")
+	flag.StringVar(&opts.subject, "subject", "", "document subject")
+	flag.StringVar(&opts.sansfont, "sans", "NotoSans-Regular", "sans font")
 	flag.StringVar(&opts.monofont, "mono", "Inconsolata-Medium", "mono font")
 	flag.StringVar(&opts.serifont, "serif", "Charter-Regular", "sans font")
 	flag.StringVar(&opts.symbolfont, "symbol", "ZapfDingbats", "sans font")
@@ -587,6 +591,5 @@ func main() {
 	// set up pages
 	cw, ch := pagedim(opts.pagesize)
 	begin, end := pagerange(opts.pages)
-	// process the deck
 	dodeck(w, r, cw, ch, begin, end)
 }

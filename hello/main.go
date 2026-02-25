@@ -3,11 +3,12 @@ package main
 
 import (
 	"math/rand/v2"
+
 	"github.com/ajstarks/gpdf"
 )
 
 func main() {
-	canvas, err := gpdf.SetupCanvas(gpdf.Letter)
+	canvas, err := gpdf.SetupCanvas(792, 612)
 	if err != nil {
 		return
 	}

@@ -53,14 +53,14 @@ func (c *Canvas) AbsCornerRect(x, y, w, h float64, color creator.ColorRGBA) {
 	)
 }
 
-func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGBA, pct float64) {
+func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGBA, percent float64) {
 	var c1, c2 creator.Color
 	c1.R, c1.G, c1.B = color1.R, color1.G, color1.B
 	c2.R, c2.G, c2.B = color2.R, color2.G, color2.B
-	grad := creator.NewLinearGradient(x, y, x+(w*pct), y+(h*pct))
+	grad := creator.NewLinearGradient(x, y, w, h)
 	grad.Type = creator.GradientTypeLinear
 	grad.AddColorStop(0, c1)
-	grad.AddColorStop(1, c2)
+	grad.AddColorStop(percent/100, c2)
 	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{FillGradient: grad})
 }
 

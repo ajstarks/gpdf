@@ -119,6 +119,7 @@ func main() {
 	flag.StringVar(&opts.monofont, "mono", "mono.ttf", "monofont font")
 	flag.StringVar(&opts.symbolfont, "symbol", "symbol.ttf", "default font")
 	flag.StringVar(&opts.output, "o", "f.pdf", "output file")
+
 	flag.Parse()
 
 	output := opts.output
@@ -166,7 +167,7 @@ func main() {
 	dotsize := 0.4
 	shapecolor := "rgb(200,200,200)" //"lightgray"
 	dotcolor := "white"
-	tcolor := "gray"
+	tcolor := "white"
 	bgcolor := "black"
 	fgcolor := dotcolor
 	canvas.Background(bgcolor)
@@ -274,13 +275,13 @@ func main() {
 	TextCode(canvas, "excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
 
 	canvas.NewPage(cw, ch)
-	canvas.SetFont(fontmap["serif"])
+	canvas.SetFont(fontmap["mono"])
 	palette := []string{"black", "red", "green", "blue", "orange"}
 	a := 0.0
 	n := 10
 	op := 100.0
 	canvas.Circle(50, 50, 2, "red")
-	for i := 0; i < n; i++ {
+	for i := range n {
 		color := palette[i%(len(palette))]
 		canvas.RText(50, 50, 40, a, "i", color, op)
 		a += 360 / float64(n)
