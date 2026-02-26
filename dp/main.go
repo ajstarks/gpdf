@@ -8,6 +8,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/ajstarks/deck"
 	"github.com/ajstarks/gpdf"
@@ -100,16 +101,16 @@ func pagedim(s string) (float64, float64) {
 	if ok {
 		return v.width, v.height
 	}
-	// lookup fails, try WxH
-	fields := strings.Split(s, "x")
-	if len(fields) != 2 {
+	// lookup fails, try W<sep>H
+	d := strings.FieldsFunc(s, func(c rune) bool { return !unicode.IsNumber(c) })
+	if len(d) != 2 {
 		return letterWidth, letterHeight
 	}
-	w, err := strconv.ParseFloat(fields[0], 64)
+	w, err := strconv.ParseFloat(d[0], 64)
 	if err != nil {
 		return letterWidth, letterHeight
 	}
-	h, err := strconv.ParseFloat(fields[1], 64)
+	h, err := strconv.ParseFloat(d[1], 64)
 	if err != nil {
 		return letterWidth, letterHeight
 	}
