@@ -256,7 +256,7 @@ func (c *Canvas) Curve(bx, by, cx, cy, ex, ey, size float64, strokecolor string,
 // Arc makes a stroked arc, using percentage-based measures
 // center is (x, y), the arc begins at angle a1, and ends at a2, with radius r.
 // The arc is stroked with the specified stroke size and color
-func (c *Canvas) Arc(x, y, r, a1, a2, size float64, fillcolor string, opacity ...float64) {
+func (c *Canvas) Arc(x, y, r, a1, a2, size float64, strokecolor string, opacity ...float64) {
 	// Define minimum and maximum step sizes
 	const minstep = 0.001
 	const maxstep = 0.1
@@ -287,7 +287,7 @@ func (c *Canvas) Arc(x, y, r, a1, a2, size float64, fillcolor string, opacity ..
 	x1, y1 := c.Polar(x, y, r, a1)
 	for t := a1; t < a2; t += step {
 		x2, y2 := c.Polar(x, y, r, t)
-		c.Line(x1, y1, x2, y2, size, fillcolor)
+		c.Line(x1, y1, x2, y2, size, strokecolor)
 		x1 = x2
 		y1 = y2
 	}

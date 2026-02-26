@@ -392,39 +392,53 @@ func number(canvas *gpdf.Canvas, n int, x, y, size float64, c string) {
 
 // list processes lists
 func list(canvas *gpdf.Canvas, list deck.List) {
-	c := list.Color
-	op := list.Opacity
-	var xp, yp, ls, ts float64
-	xp = list.Xp
-	yp = list.Yp
-	ts = list.Sp
-	ls = list.Lp
-	if list.Font == "" {
-		list.Font = "sans"
+	rotation := list.Rotation
+	font := list.Font
+	color := list.Color
+	align := list.Align
+	ltype := list.Type
+	ts := list.Sp
+	ls := list.Lp
+	xp := list.Xp
+	yp := list.Yp
+	op := setopacity(list.Opacity)
+	if font == "" {
+		font = "sans"
 	}
 	if ls == 0 {
 		ls = listspacing
 	}
-	canvas.CustomFont = fontmap[list.Font]
-	var t string
+	defont := font
+	canvas.CustomFont = fontmap[defont]
 	for i, item := range list.Li {
-		t = item.ListText
-		if item.Font != "" {
-			canvas.CustomFont = fontmap[item.Font]
-		}
-		if item.Color != "" {
-			c = item.Color
-		}
-		if list.Type == "number" {
-			number(canvas, i, xp, yp, ts, c)
-		}
-		if list.Type == "bullet" {
-			bullet(canvas, xp, yp, ts, c)
-		}
-		if list.Align == "center" {
-			canvas.CText(xp, yp, ts, t, c, op)
+		t := item.ListText
+		if len(item.Color) > 0 {
+			color = item.Color
 		} else {
-			canvas.Text(xp, yp, ts, t, c, op)
+			color = list.Color
+		}
+		if len(item.Font) > 0 {
+			canvas.CustomFont = fontmap[item.Font]
+		} else {
+			canvas.CustomFont = fontmap[defont]
+		}
+		if item.Opacity > 0 {
+			op = setopacity(item.Opacity)
+		}
+		if ltype == "number" {
+			number(canvas, i, xp, yp, ts, color)
+		}
+		if ltype == "bullet" {
+			bullet(canvas, xp, yp, ts, color)
+		}
+		if align == "center" {
+			canvas.CText(xp, yp, ts, t, color, op)
+		} else {
+			if rotation == 0 {
+				canvas.Text(xp, yp, ts, t, color, op)
+			} else {
+				canvas.RText(xp, yp, ts, rotation, t, color, op)
+			}
 		}
 		yp -= ls * ts * listspacing
 	}
@@ -442,10 +456,11 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 	if slide.Fg == "" {
 		slide.Fg = "black"
 	}
-	if slide.GradPercent <= 0 || slide.GradPercent > 100 {
-		slide.GradPercent = 100
-	}
+
 	if len(slide.Gradcolor1) > 0 && len(slide.Gradcolor2) > 0 {
+		if slide.GradPercent <= 0 || slide.GradPercent > 100 {
+			slide.GradPercent = 100
+		}
 		canvas.GradRect(0, 0, 100, 100, slide.Gradcolor1, slide.Gradcolor2, slide.GradPercent)
 	} else {
 		canvas.Background(bg)

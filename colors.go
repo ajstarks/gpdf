@@ -185,7 +185,7 @@ func hc(s string) float64 {
 	if err != nil {
 		return 0
 	}
-	return float64(v)
+	return float64(v) / 255.0
 }
 
 // ColorLookup returns a color.RGBA corresponding to the named color or
