@@ -265,8 +265,8 @@ func (c *Canvas) Arc(x, y, w, h, a1, a2, size float64, fillcolor string, opacity
 		w = pct(w, ch)
 		h = pct(100, w)
 	} else { // ellipitcal arc
-		h = pct(w, cw)
-		w = pct(h, ch)
+		w = pct(w, cw)
+		h = pct(h, ch)
 	}
 	size = pct(size, cw)
 	color := ColorLookup(fillcolor)
