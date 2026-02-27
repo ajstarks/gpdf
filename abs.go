@@ -68,6 +68,15 @@ func (c *Canvas) AbsCenterRect(x, y, w, h float64, color creator.ColorRGBA) {
 	c.AbsCornerRect(x-w/2, y-h/2, w, h, color)
 }
 
+func (c *Canvas) AbsArc(x, y, w, h, a1, a2, size float64, color creator.ColorRGBA) {
+	clr := creator.Color{R: color.R, G: color.G, B: color.B}
+	if size == w {
+		c.Page.DrawArc(x, y, w, h, a1, (a2 - a1), &creator.ArcOptions{FillColor: &clr, StrokeWidth: size, Opacity: &color.A})
+	} else {
+		c.Page.DrawArc(x, y, w, h, a1, (a2 - a1), &creator.ArcOptions{StrokeColor: &clr, StrokeWidth: size, Opacity: &color.A})
+	}
+}
+
 func (c *Canvas) AbsText(x, y, size float64, s string, color creator.ColorRGBA) {
 	// println("AbsText", color.A)
 	if c.CustomFont == nil {

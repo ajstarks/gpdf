@@ -249,6 +249,7 @@ func (c *Canvas) QuadCurve(bx, by, cx, cy, ex, ey, size float64, strokecolor str
 	c.AbsQuadBezier(bx, by, cx, cy, ex, ey, size, color)
 }
 
+// Curve makes a quadradic bezier curve
 func (c *Canvas) Curve(bx, by, cx, cy, ex, ey, size float64, strokecolor string, opacity ...float64) {
 	c.QuadCurve(bx, by, cx, cy, ex, ey, size, strokecolor)
 }
@@ -256,7 +257,27 @@ func (c *Canvas) Curve(bx, by, cx, cy, ex, ey, size float64, strokecolor string,
 // Arc makes a stroked arc, using percentage-based measures
 // center is (x, y), the arc begins at angle a1, and ends at a2, with radius r.
 // The arc is stroked with the specified stroke size and color
-func (c *Canvas) Arc(x, y, r, a1, a2, size float64, strokecolor string, opacity ...float64) {
+func (c *Canvas) Arc(x, y, w, h, a1, a2, size float64, fillcolor string, opacity ...float64) {
+	cw := c.Width
+	ch := c.Height
+	x, y = dimen(x, y, cw, ch)
+	if w == h { // circular arc
+		w = pct(w, ch)
+		h = pct(100, w)
+	} else { // ellipitcal arc
+		h = pct(w, cw)
+		w = pct(h, ch)
+	}
+	size = pct(size, cw)
+	color := ColorLookup(fillcolor)
+	color.A = 1
+	if len(opacity) > 0 {
+		color.A = opacity[0] / 100
+	}
+	c.AbsArc(x, y, w, h, a1, a2, size, color)
+}
+
+func (c *Canvas) OldArc(x, y, r, a1, a2, size float64, strokecolor string, opacity ...float64) {
 	// Define minimum and maximum step sizes
 	const minstep = 0.001
 	const maxstep = 0.1

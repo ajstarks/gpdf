@@ -142,7 +142,7 @@ func main() {
 
 	// API
 	labels := []string{
-		"Arc(x,y, r,a1,a2, size,color)",
+		"Arc(x,y, w,h,a1,a2, size,color)",
 		"Circle(x,y, r, color)",
 		"Ellipse(x,y, w,h, color)",
 		"ImageName(x,y, w,h, name)",
@@ -180,7 +180,7 @@ func main() {
 	y = 85.0
 	// arc
 	canvas.Circle(c2, y, dotsize, dotcolor)
-	canvas.Arc(c2, y, 5, 0, 90, lw, shapecolor)
+	canvas.Arc(c2, y, 5, 5, 0, 90, lw, shapecolor)
 	y -= yspace
 	// circle
 	canvas.Circle(c2, y, 3, shapecolor)

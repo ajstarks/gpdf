@@ -1,7 +1,7 @@
 github.com/ajstarks/deck v0.0.0-20260118210537-d56fad59c3d5 h1:UCz8h6SRmxvPIHOeiDi6mdUod5SjUVB5MdLm2Dl06cc=
 github.com/ajstarks/deck v0.0.0-20260118210537-d56fad59c3d5/go.mod h1:f83zzcnV3EXCYWcJRcQASgum/+3ak7c8g6fle9tDtYo=
-github.com/coregx/gxpdf v0.6.0 h1:3WTuGF02zAQi12xhK4qvQpuTEkxuhSju4V3W3VDjwWA=
-github.com/coregx/gxpdf v0.6.0/go.mod h1:ziVrCi95jVy1UY/XglSgEexgU0mbiY0pptkhbVgCbCI=
+github.com/coregx/gxpdf v0.6.1-0.20260227105055-37270da02e1d h1:G9/ss5Q5Ez2GyEBIkgn/IntXWRBksSUL+lvCHpTnii4=
+github.com/coregx/gxpdf v0.6.1-0.20260227105055-37270da02e1d/go.mod h1:ziVrCi95jVy1UY/XglSgEexgU0mbiY0pptkhbVgCbCI=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

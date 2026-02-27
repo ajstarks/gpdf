@@ -290,7 +290,7 @@ func arc(canvas *gpdf.Canvas, a deck.Arc) {
 	}
 	c := a.Color
 	op := setopacity(a.Opacity)
-	canvas.Arc(a.Xp, a.Yp, a.Wp/2, a.A1, a.A2, a.Sp, c, op)
+	canvas.Arc(a.Xp, a.Yp, a.Wp/2, a.Hp/2, a.A1, a.A2, a.Sp, c, op)
 }
 
 // curve makea a quad bezier curve
