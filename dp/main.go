@@ -19,7 +19,7 @@ const (
 	letterWidth  = 792
 	letterHeight = 612
 	linespacing  = 1.8
-	listspacing  = 1.5
+	listspacing  = 2.0
 	listwrap     = 95.0
 	defaultColor = "rgb(128,128,128)"
 )
@@ -441,7 +441,7 @@ func list(canvas *gpdf.Canvas, list deck.List) {
 				canvas.RText(xp, yp, ts, rotation, t, color, op)
 			}
 		}
-		yp -= ls * ts * listspacing
+		yp -= (ls * ts)
 	}
 }
 
