@@ -135,7 +135,7 @@ func radbar(canvas *gpdf.Canvas, w io.Writer, r io.Reader, opts options) error {
 		}
 		// map data to an angle
 		v := vmap(data[i].value, 0, maxval, endAngle, beginAngle)
-		canvas.Arc(cx, cy, x/2, v, 180, lw, color)
+		canvas.Arc(cx, cy, x/2, x/2, v, 180, lw, color)
 		x -= xint
 		lx += li
 	}

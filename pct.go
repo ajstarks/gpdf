@@ -163,7 +163,7 @@ func (c *Canvas) RText(x, y, size, angle float64, s string, fillcolor string, op
 	c.AbsRText(x, y, size, angle, s, color)
 }
 
-func (c *Canvas) TextWrap(x, y, w, size, linespacing float64, s string, textcolor string, opacity ...float64) {
+func (c *Canvas) TextWrapStrict(x, y, w, size, linespacing float64, s string, textcolor string, opacity ...float64) {
 	x, y = dimen(x, y, c.Width, c.Height)
 	size = pct(size, c.Width)
 	w = pct(w, c.Width)
@@ -178,7 +178,7 @@ func (c *Canvas) TextWrap(x, y, w, size, linespacing float64, s string, textcolo
 	yp := y
 	edge := x + w
 	words := strings.FieldsFunc(s, whitespace)
-	//  never go over the edge
+	// strict Wrap
 	for _, s := range words {
 		tw := c.CustomFont.MeasureString(s, size)
 		if xp+tw > edge {
@@ -187,6 +187,33 @@ func (c *Canvas) TextWrap(x, y, w, size, linespacing float64, s string, textcolo
 		}
 		c.AbsText(xp, yp, size, s, color)
 		xp += tw + wordspacing
+	}
+}
+
+func (c *Canvas) TextWrap(x, y, w, size, linespacing float64, s string, textcolor string, opacity ...float64) {
+	x, y = dimen(x, y, c.Width, c.Height)
+	size = pct(size, c.Width)
+	w = pct(w, c.Width)
+	color := ColorLookup(textcolor)
+	color.A = 1
+	if len(opacity) > 0 {
+		color.A = opacity[0] / 100
+	}
+	const factor = 0.3
+	wordspacing := c.CustomFont.MeasureString("M", size)
+	xp := x
+	yp := y
+	edge := x + w
+	words := strings.FieldsFunc(s, whitespace)
+	//  non-strict justification
+	for _, s := range words {
+		tw := c.CustomFont.MeasureString(s, size)
+		c.AbsText(xp, yp, size, s, color)
+		xp += tw + (wordspacing * factor)
+		if xp > edge {
+			xp = x
+			yp -= (size * linespacing)
+		}
 	}
 }
 
@@ -261,13 +288,8 @@ func (c *Canvas) Arc(x, y, w, h, a1, a2, size float64, fillcolor string, opacity
 	cw := c.Width
 	ch := c.Height
 	x, y = dimen(x, y, cw, ch)
-	if w == h { // circular arc
-		w = pct(w, ch)
-		h = pct(100, w)
-	} else { // ellipitcal arc
-		w = pct(w, cw)
-		h = pct(h, ch)
-	}
+	w = pct(w/2, cw)
+	h = pct(h/2, cw)
 	size = pct(size, cw)
 	color := ColorLookup(fillcolor)
 	color.A = 1

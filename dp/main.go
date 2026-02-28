@@ -290,7 +290,7 @@ func arc(canvas *gpdf.Canvas, a deck.Arc) {
 	}
 	c := a.Color
 	op := setopacity(a.Opacity)
-	canvas.Arc(a.Xp, a.Yp, a.Wp/2, a.Hp/2, a.A1, a.A2, a.Sp, c, op)
+	canvas.Arc(a.Xp, a.Yp, a.Wp, a.Hp, a.A1, a.A2, a.Sp, c, op)
 }
 
 // curve makea a quad bezier curve
@@ -354,7 +354,7 @@ func dtext(canvas *gpdf.Canvas, t deck.Text) {
 
 	s := t.Tdata
 	if t.Type == "block" {
-		canvas.TextWrap(x, y, w, ts, 1.2, s, c, op)
+		canvas.TextWrapStrict(x, y, w, ts, 1.2, s, c, op)
 		return
 	}
 	if len(t.File) > 0 {

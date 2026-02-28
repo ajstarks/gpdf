@@ -276,6 +276,22 @@ func main() {
 
 	canvas.NewPage(cw, ch)
 	canvas.SetFont(fontmap["mono"])
+	letters := "ABCEDEFGHIJKLMNOPQRSTUVWXYZ"
+	x := 2.5
+	y = 95.0
+	ts = 2.0
+	ls := ts * 1.6
+	for _, r := range letters {
+		canvas.Text(x, y, ts, string(r), "maroon")
+		y -= ls
+	}
+	canvas.SetFont(fontmap["symbol"])
+	x += 2.5
+	y = 95.0
+	for _, r := range letters {
+		canvas.Text(x, y, ts, string(r), "black")
+		y -= ls
+	}
 	palette := []string{"black", "red", "green", "blue", "orange"}
 	a := 0.0
 	n := 10
@@ -283,10 +299,30 @@ func main() {
 	canvas.Circle(50, 50, 2, "red")
 	for i := range n {
 		color := palette[i%(len(palette))]
-		canvas.RText(50, 50, 40, a, "i", color, op)
+		canvas.RText(50, 50, 40, a, "A", color, op)
 		a += 360 / float64(n)
 		op -= 10
 	}
+
+	canvas.NewPage(cw, ch)
+	asize := 0.2
+	aw := 10.0
+	ah := 5.0
+	canvas.Circle(50, 50, 0.5, "maroon")
+	canvas.Arc(50, 50, aw, ah, 0, 90, asize, "red")
+	canvas.Arc(50, 50, aw, ah, 90, 180, asize, "green")
+	canvas.Arc(50, 50, aw, ah, 180, 270, asize, "blue")
+	canvas.Arc(50, 50, aw, ah, 270, 360, asize, "orange")
+	op = 100
+	for r := 15.0; r <= 50; r += 5 {
+		canvas.Arc(50, 50, r, r, 0, 90, asize*2, "red", op)
+		canvas.Arc(50, 50, r, r, 90, 180, asize*2, "green", op)
+		canvas.Arc(50, 50, r, r, 180, 270, asize*2, "blue", op)
+		canvas.Arc(50, 50, r, r, 270, 360, asize*2, "orange", op)
+		op -= 5
+
+	}
+	canvas.LGrid(0, 100, 0, 100, 0.1, 5, "gray", 70)
 	err = canvas.Creator.WriteToFile(output)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
