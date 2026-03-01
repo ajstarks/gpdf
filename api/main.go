@@ -10,23 +10,24 @@ import (
 type Point struct{ X, Y float64 }
 
 func api(canvas *gpdf.Canvas) {
-	var colx float64
-	var lw float64 = 0.2
-	var labelsize float64 = 2.0
+	colx := 20.0
+	lw := 0.2
+	labelsize := 2.0
 	titlesize := labelsize * 2
 	subsize := labelsize * 0.7
 	op := 30.0
-	tcolor := "#aa0000"
-	fcolor := "#0000aa"
-	bgcolor := "white"
+	top := 90.0
+	tcolor := "rgb(128,0,0)"
+	fcolor := "rgb(0,0,128)"
+	bgcolor := "rgb(255,255,255)"
 	labelcolor := "rgb(50,50,50)"
 	subtitle := "A canvas API for PDF using high-level objects and a percentage-based coordinate system (https://github.com/ajstarks/gpdf)"
 
 	// Title
 	canvas.Background(bgcolor)
-	colx = 20
-	canvas.CText(colx, 92, titlesize, "gpdf API", labelcolor)
-	canvas.TextWrap(colx+15, 95, 40, titlesize*0.3, 1.2, subtitle, labelcolor)
+
+	canvas.CText(colx, top, titlesize, "gpdf API", labelcolor)
+	canvas.TextWrap(colx+15, top+2, 30, titlesize*0.3, 1.2, subtitle, labelcolor)
 
 	// Lines
 	canvas.CText(colx, 80, labelsize, "Line", labelcolor)
@@ -61,7 +62,7 @@ func api(canvas *gpdf.Canvas) {
 	c1 := Point{X: 70, Y: 85}
 	end := Point{X: 70, Y: 65}
 	canvas.CText(60, 80, labelsize, "Quadratic Bezier Curve", labelcolor)
-	canvas.Curve(start.X, start.Y, c1.X, c1.Y, end.X, end.Y, lw, tcolor)
+	canvas.Curve(start.X, start.Y, c1.X, c1.Y, end.X, end.Y, lw, tcolor, op)
 	canvas.Coord(start.X, start.Y, subsize, "start", labelcolor)
 	canvas.Coord(c1.X, c1.Y, subsize, "control", labelcolor)
 	canvas.Coord(end.X, end.Y, subsize, "end", labelcolor)
@@ -73,7 +74,7 @@ func api(canvas *gpdf.Canvas) {
 	c2 := Point{X: colx, Y: 50}
 	end = Point{X: 70, Y: 40}
 	canvas.CText(colx, 55, labelsize, "Cubic Bezier Curve", labelcolor)
-	canvas.CubicCurve(start.X, start.Y, c1.X, c1.Y, c2.X, c2.Y, end.X, end.Y, lw, fcolor)
+	canvas.CubicCurve(start.X, start.Y, c1.X, c1.Y, c2.X, c2.Y, end.X, end.Y, lw, fcolor, op)
 	canvas.Coord(start.X, start.Y, subsize, "start", labelcolor)
 	canvas.Coord(end.X, end.Y, subsize, "end", labelcolor)
 	canvas.Coord(c1.X, c1.Y, subsize, "control 1", labelcolor)
@@ -102,8 +103,18 @@ func api(canvas *gpdf.Canvas) {
 	// Image
 	canvas.CText(colx, 30, labelsize, "Image", labelcolor)
 	canvas.ImageName(colx, 15, 75, 75, "earth.jpg")
-	canvas.Coord(colx, 15, subsize, "", "black")
+	canvas.Coord(colx, 15, subsize, "", "white")
 
+	tx1 := colx + 5
+	tx2 := colx
+	tx3 := colx - 5
+	canvas.CText(colx, top+5, labelsize, "Text", labelcolor)
+	canvas.Text(tx1, top, subsize, "hello", labelcolor)
+	canvas.CText(tx2, top, subsize, "hello", labelcolor)
+	canvas.EText(tx3, top, subsize, "hello", labelcolor)
+	canvas.Circle(tx1, top, subsize*0.2, labelcolor, 50)
+	canvas.Circle(tx2, top, subsize*0.2, labelcolor, 50)
+	canvas.Circle(tx3, top, subsize*0.2, labelcolor, 50)
 }
 
 func main() {

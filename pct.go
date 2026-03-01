@@ -287,7 +287,7 @@ func (c *Canvas) QuadCurve(bx, by, cx, cy, ex, ey, size float64, strokecolor str
 
 // Curve makes a quadradic bezier curve
 func (c *Canvas) Curve(bx, by, cx, cy, ex, ey, size float64, strokecolor string, opacity ...float64) {
-	c.QuadCurve(bx, by, cx, cy, ex, ey, size, strokecolor)
+	c.QuadCurve(bx, by, cx, cy, ex, ey, size, strokecolor, opacity...)
 }
 
 // Arc makes a stroked arc, using percentage-based measures
