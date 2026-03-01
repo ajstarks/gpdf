@@ -1,3 +1,5 @@
+// gpdf generates PDF using a %-based coordinate system, with high-level functions for page elements
+// color processing
 package gpdf
 
 import (
@@ -156,18 +158,6 @@ var colornames = map[string]creator.ColorRGBA{
 	"whitesmoke":           {R: 0.961, G: 0.961, B: 0.961, A: 1},
 	"yellow":               {R: 1.000, G: 1.000, B: 0.000, A: 1},
 	"yellowgreen":          {R: 0.604, G: 0.804, B: 0.196, A: 1},
-}
-
-func colorop(s string) (string, float64) {
-	co := strings.Split(s, ":")
-	if len(co) != 2 {
-		return s, 100
-	}
-	o, err := strconv.ParseFloat(co[1], 64)
-	if err != nil {
-		o = 100
-	}
-	return co[0], o
 }
 
 // cc converts a color string to number

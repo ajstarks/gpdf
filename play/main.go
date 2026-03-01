@@ -149,7 +149,7 @@ func main() {
 		"Line(x1,y1, x2,y2, size, color)",
 		"Polygon(x,y, color), Polyline(x,y size, color)",
 		"Curve(bx,by, cx,cy, ex,ey, size, color)",
-		"Square(x,y, w, color), Rect(x, y, w,h, color)",
+		"Square(x,y, w, color), Rect(x, y, w,h, color), GradRect(x,y,w,h,c1,c2,pct)",
 		"{B,C,E}Text(x,y, size, color), RText(x,y, size,angle, color)",
 		"TextCode(name, x,y,w,h, size,spacing,border, bcolor,tcolor)",
 		"Grid(x1,x2, y1,y2, size, incr, color)",
@@ -163,11 +163,11 @@ func main() {
 	c2 := c1 + 85
 	c3 := c2 - 5
 	c4 := c2 + 5
-	ts := 2.0
+	ts := 1.8
 	dotsize := 0.4
-	shapecolor := "rgb(200,200,200)" //"lightgray"
+	shapecolor := "rgb(150,150,150)" //"lightgray"
 	dotcolor := "white"
-	tcolor := "white"
+	tcolor := shapecolor // "rgb(150,150,150)"
 	bgcolor := "black"
 	fgcolor := dotcolor
 	canvas.Background(bgcolor)
@@ -249,7 +249,7 @@ func main() {
 	y -= yspace
 	// textcode
 	canvas.SetFont(fontmap["mono"])
-	TextCode(canvas, "hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 1.6, 0.3, shapecolor, "gray")
+	TextCode(canvas, "hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 1.6, 0.3, shapecolor, "black")
 	canvas.Circle(c3, y+4, dotsize, dotcolor)
 	y -= yspace
 	// grid
@@ -275,6 +275,7 @@ func main() {
 	TextCode(canvas, "excode", 2, 98, 40, 45, codesize, 1.5, border, "black", "white")
 
 	canvas.NewPage(cw, ch)
+	canvas.GradRect(0, 0, 100, 100, "white", "blue", 10)
 	canvas.SetFont(fontmap["mono"])
 	letters := "ABCEDEFGHIJKLMNOPQRSTUVWXYZ"
 	x := 2.5

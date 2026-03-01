@@ -1,7 +1,8 @@
+// gpdf generates PDF using a %-based coordinate system, with high-level functions for page elements
+// percentage-based methods
 package gpdf
 
 import (
-	"math"
 	"strconv"
 	"strings"
 )
@@ -88,6 +89,7 @@ func (c *Canvas) Rect(x, y, w, h float64, fillcolor string, opacity ...float64) 
 	c.AbsCenterRect(x, y, w, h, color)
 }
 
+// GradRect makes a rectangle filled with a gradient
 func (c *Canvas) GradRect(x, y, w, h float64, color1 string, color2 string, percent float64) {
 	x, y = dimen(x, y, c.Width, c.Height)
 	w = pct(w, c.Width)
@@ -163,6 +165,12 @@ func (c *Canvas) RText(x, y, size, angle float64, s string, fillcolor string, op
 	c.AbsRText(x, y, size, angle, s, color)
 }
 
+// whitespace determines if a rune is whitespace
+func whitespace(r rune) bool {
+	return r == ' ' || r == '\n' || r == '\t'
+}
+
+// TextWrap wraps text at the width, using strict mode
 func (c *Canvas) TextWrapStrict(x, y, w, size, linespacing float64, s string, textcolor string, opacity ...float64) {
 	x, y = dimen(x, y, c.Width, c.Height)
 	size = pct(size, c.Width)
@@ -190,6 +198,7 @@ func (c *Canvas) TextWrapStrict(x, y, w, size, linespacing float64, s string, te
 	}
 }
 
+// TextWrap wraps text at the width
 func (c *Canvas) TextWrap(x, y, w, size, linespacing float64, s string, textcolor string, opacity ...float64) {
 	x, y = dimen(x, y, c.Width, c.Height)
 	size = pct(size, c.Width)
@@ -297,43 +306,6 @@ func (c *Canvas) Arc(x, y, w, h, a1, a2, size float64, fillcolor string, opacity
 		color.A = opacity[0] / 100
 	}
 	c.AbsArc(x, y, w, h, a1, a2, size, color)
-}
-
-func (c *Canvas) OldArc(x, y, r, a1, a2, size float64, strokecolor string, opacity ...float64) {
-	// Define minimum and maximum step sizes
-	const minstep = 0.001
-	const maxstep = 0.1
-	const twoPi = math.Pi * 2
-
-	// convert angles from degrees to radians
-	a1 = a1 * (math.Pi / 180)
-	a2 = a2 * (math.Pi / 180)
-
-	// Ensure the angles are in the range [0, 2π)
-	a1 = math.Mod(a1, twoPi)
-	a2 = math.Mod(a2, twoPi)
-	// Calculate step size based on the radius (Smaller steps for larger radius)
-	step := 1.0 / (3.0 * r * twoPi)
-
-	// Clamp step to be within the defined range for performance reasons
-	if step < minstep {
-		step = minstep
-	}
-	if step > maxstep {
-		step = maxstep
-	}
-	// Ensure we handle crossing the 0/2π boundary correctly
-	if a2 < a1 {
-		a2 += twoPi
-	}
-	// Initialize the starting point
-	x1, y1 := c.Polar(x, y, r, a1)
-	for t := a1; t < a2; t += step {
-		x2, y2 := c.Polar(x, y, r, t)
-		c.Line(x1, y1, x2, y2, size, strokecolor)
-		x1 = x2
-		y1 = y2
-	}
 }
 
 // ImageName places a named image centered at (x,y), with dimensions (w,h)

@@ -1,3 +1,5 @@
+// gpdf generates PDF using a %-based coordinate system, with high-level functions for page elements
+// convenience functions
 package gpdf
 
 import "math"

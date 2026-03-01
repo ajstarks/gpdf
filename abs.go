@@ -1,3 +1,5 @@
+// gpdf generates PDF using a %-based coordinate system, with high-level functions for page elements
+// absolute coordinate methods
 package gpdf
 
 import (
@@ -5,7 +7,6 @@ import (
 )
 
 func (c *Canvas) AbsLine(x0, y0, x1, y1, size float64, color creator.ColorRGBA) {
-	//println("AbsLine", color.A)
 	c.Page.DrawLine(x0, y0, x1, y1,
 		&creator.LineOptions{
 			Color: creator.Color{
@@ -19,7 +20,6 @@ func (c *Canvas) AbsLine(x0, y0, x1, y1, size float64, color creator.ColorRGBA) 
 }
 
 func (c *Canvas) AbsCircle(x, y, r float64, color creator.ColorRGBA) {
-	// println("AbsCircle", color.A)
 	c.Page.DrawCircle(x, y, r, &creator.CircleOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -31,7 +31,6 @@ func (c *Canvas) AbsCircle(x, y, r float64, color creator.ColorRGBA) {
 }
 
 func (c *Canvas) AbsEllipse(x, y, w, h float64, color creator.ColorRGBA) {
-	//println("AbsEllipse", x, y, w, h, color.R, color.G, color.B, color.A)
 	c.Page.DrawEllipse(x, y, w, h, &creator.EllipseOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -41,8 +40,12 @@ func (c *Canvas) AbsEllipse(x, y, w, h float64, color creator.ColorRGBA) {
 		Opacity: &color.A})
 }
 
+func (c *Canvas) AbsArc(x, y, w, h, a1, a2, size float64, color creator.ColorRGBA) {
+	clr := creator.Color{R: color.R, G: color.G, B: color.B}
+	c.Page.DrawArc(x, y, w, h, a1, (a2 - a1), &creator.ArcOptions{StrokeColor: &clr, StrokeWidth: size, Opacity: &color.A})
+}
+
 func (c *Canvas) AbsCornerRect(x, y, w, h float64, color creator.ColorRGBA) {
-	// println("AbsCornerRect", color.A)
 	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{
 		FillColor: &creator.Color{
 			R: color.R,
@@ -51,6 +54,10 @@ func (c *Canvas) AbsCornerRect(x, y, w, h float64, color creator.ColorRGBA) {
 		},
 		Opacity: &color.A},
 	)
+}
+
+func (c *Canvas) AbsCenterRect(x, y, w, h float64, color creator.ColorRGBA) {
+	c.AbsCornerRect(x-w/2, y-h/2, w, h, color)
 }
 
 func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGBA, percent float64) {
@@ -64,17 +71,60 @@ func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGB
 	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{FillGradient: grad})
 }
 
-func (c *Canvas) AbsCenterRect(x, y, w, h float64, color creator.ColorRGBA) {
-	c.AbsCornerRect(x-w/2, y-h/2, w, h, color)
+func (c *Canvas) AbsPolygon(x, y []float64, color creator.ColorRGBA) {
+	lx := len(x)
+	if lx < 3 || lx != len(y) {
+		return
+	}
+	coords := make([]creator.Point, lx)
+	for i := range lx {
+		coords[i].X = x[i]
+		coords[i].Y = y[i]
+	}
+	c.Page.DrawPolygon(coords, &creator.PolygonOptions{
+		FillColor: &creator.Color{
+			R: color.R,
+			G: color.G,
+			B: color.B,
+		},
+		Opacity: &color.A},
+	)
 }
 
-func (c *Canvas) AbsArc(x, y, w, h, a1, a2, size float64, color creator.ColorRGBA) {
-	clr := creator.Color{R: color.R, G: color.G, B: color.B}
-	c.Page.DrawArc(x, y, w, h, a1, (a2 - a1), &creator.ArcOptions{StrokeColor: &clr, StrokeWidth: size, Opacity: &color.A})
+func (c *Canvas) AbsQuadBezier(bx, by, cx, cy, ex, ey, size float64, color creator.ColorRGBA) {
+	bpoints := []creator.QuadBezierSegment{
+		{
+			Start:   creator.Point{X: bx, Y: by},
+			Control: creator.Point{X: cx, Y: cy},
+			End:     creator.Point{X: ex, Y: ey},
+		},
+	}
+	c.Page.DrawQuadBezierCurve(bpoints, &creator.BezierOptions{
+		Color: creator.Color{
+			R: color.R,
+			G: color.G,
+			B: color.B,
+		}, Width: size, Opacity: &color.A})
+}
+
+func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64, color creator.ColorRGBA) {
+	bpoints := []creator.BezierSegment{
+		{
+			Start: creator.Point{X: bx, Y: by},
+			C1:    creator.Point{X: c0x, Y: c0y},
+			C2:    creator.Point{X: c1x, Y: c1y},
+			End:   creator.Point{X: ex, Y: ey},
+		},
+	}
+	c.Page.DrawBezierCurve(bpoints, &creator.BezierOptions{
+		Color: creator.Color{
+			R: color.R,
+			G: color.G,
+			B: color.B,
+		}, Width: size, Opacity: &color.A})
 }
 
 func (c *Canvas) AbsText(x, y, size float64, s string, color creator.ColorRGBA) {
-	// println("AbsText", color.A)
 	if c.CustomFont == nil {
 		c.Page.AddTextColorAlpha(s, x, y, c.StdFont, size, creator.Color{R: color.R, G: color.G, B: color.B}, color.A)
 	} else {
@@ -112,69 +162,7 @@ func (c *Canvas) AbsRText(x, y, size, angle float64, s string, color creator.Col
 	}
 }
 
-// whitespace determines if a rune is whitespace
-func whitespace(r rune) bool {
-	return r == ' ' || r == '\n' || r == '\t'
-}
-
-func (c *Canvas) AbsPolygon(x, y []float64, color creator.ColorRGBA) {
-	// println("AbsPolygon", color.A)
-	lx := len(x)
-	if lx < 3 || lx != len(y) {
-		return
-	}
-	coords := make([]creator.Point, lx)
-	for i := range lx {
-		coords[i].X = x[i]
-		coords[i].Y = y[i]
-	}
-	c.Page.DrawPolygon(coords, &creator.PolygonOptions{
-		FillColor: &creator.Color{
-			R: color.R,
-			G: color.G,
-			B: color.B,
-		},
-		Opacity: &color.A},
-	)
-}
-
-func (c *Canvas) AbsQuadBezier(bx, by, cx, cy, ex, ey, size float64, color creator.ColorRGBA) {
-	// println("AbsQuad Bezier", color.A)
-	bpoints := []creator.QuadBezierSegment{
-		{
-			Start:   creator.Point{X: bx, Y: by},
-			Control: creator.Point{X: cx, Y: cy},
-			End:     creator.Point{X: ex, Y: ey},
-		},
-	}
-	c.Page.DrawQuadBezierCurve(bpoints, &creator.BezierOptions{
-		Color: creator.Color{
-			R: color.R,
-			G: color.G,
-			B: color.B,
-		}, Width: size, Opacity: &color.A})
-}
-
-func (c *Canvas) AbsCubicBezier(bx, by, c0x, c0y, c1x, c1y, ex, ey, size float64, color creator.ColorRGBA) {
-	// println("AbsCubic Bezier", color.A)
-	bpoints := []creator.BezierSegment{
-		{
-			Start: creator.Point{X: bx, Y: by},
-			C1:    creator.Point{X: c0x, Y: c0y},
-			C2:    creator.Point{X: c1x, Y: c1y},
-			End:   creator.Point{X: ex, Y: ey},
-		},
-	}
-	c.Page.DrawBezierCurve(bpoints, &creator.BezierOptions{
-		Color: creator.Color{
-			R: color.R,
-			G: color.G,
-			B: color.B,
-		}, Width: size, Opacity: &color.A})
-}
-
 func (c *Canvas) AbsImage(x, y, w, h float64, name string) error {
-	//println(name, x, y, w, h)
 	img, err := creator.LoadImage(name)
 	if err != nil {
 		return err
@@ -187,7 +175,6 @@ func (c *Canvas) AbsImage(x, y, w, h float64, name string) error {
 }
 
 func (c *Canvas) AbsCenterImageName(x, y, w, h float64, name string) error {
-	//println(name, x, y, w, h)
 	img, err := creator.LoadImage(name)
 	if err != nil {
 		return err

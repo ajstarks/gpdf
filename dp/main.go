@@ -166,6 +166,7 @@ func setopacity(v float64) float64 {
 	return o
 }
 
+// setmeta sets the document metadata
 func setmetadata(canvas *gpdf.Canvas) {
 	if len(opts.author) > 0 {
 		canvas.Creator.SetAuthor(opts.author)
@@ -196,8 +197,8 @@ func cacheimages(c *gpdf.Canvas, d deck.Deck) {
 	}
 }
 
-// dimage processes deck images
-func dimage(canvas *gpdf.Canvas, img gpdf.Pimage, i deck.Image) {
+// image processes deck images
+func image(canvas *gpdf.Canvas, img gpdf.Pimage, i deck.Image) {
 	sc := 100.0
 	if i.Scale > 0 {
 		sc = i.Scale
@@ -339,8 +340,8 @@ func poly(canvas *gpdf.Canvas, p deck.Polygon) {
 	canvas.Polygon(xp, yp, p.Color, setopacity(p.Opacity))
 }
 
-// dtext processes text
-func dtext(canvas *gpdf.Canvas, t deck.Text) {
+// text processes text
+func text(canvas *gpdf.Canvas, t deck.Text) {
 	if t.Font == "" {
 		t.Font = "sans"
 	}
@@ -477,14 +478,14 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 				if !ok {
 					continue
 				}
-				dimage(canvas, img, i)
+				image(canvas, img, i)
 			}
 		case "text":
 			for _, t := range slide.Text {
 				if t.Color == "" {
 					t.Color = slide.Fg
 				}
-				dtext(canvas, t)
+				text(canvas, t)
 			}
 		case "list":
 			for _, li := range slide.List {
