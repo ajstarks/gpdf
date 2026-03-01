@@ -140,127 +140,12 @@ func main() {
 
 	canvas.SetFont(fontmap["sans"])
 
-	// API
-	labels := []string{
-		"Arc(x,y, w,h,a1,a2, size,color)",
-		"Circle(x,y, r, color)",
-		"Ellipse(x,y, w,h, color)",
-		"ImageName(x,y, w,h, name)",
-		"Line(x1,y1, x2,y2, size, color)",
-		"Polygon(x,y, color), Polyline(x,y size, color)",
-		"Curve(bx,by, cx,cy, ex,ey, size, color)",
-		"Square(x,y, w, color), Rect(x, y, w,h, color), GradRect(x,y,w,h,c1,c2,pct)",
-		"{B,C,E}Text(x,y, size, color), RText(x,y, size,angle, color)",
-		"TextCode(name, x,y,w,h, size,spacing,border, bcolor,tcolor)",
-		"Grid(x1,x2, y1,y2, size, incr, color)",
-		"Background(color)",
-	}
-	yspace := 7.5
-	yspace2 := yspace / 2
 	y := 85.0
-	lw := 0.3
-	c1 := 5.0
-	c2 := c1 + 85
-	c3 := c2 - 5
-	c4 := c2 + 5
 	ts := 1.8
-	dotsize := 0.4
-	shapecolor := "rgb(150,150,150)" //"lightgray"
-	dotcolor := "white"
-	tcolor := shapecolor // "rgb(150,150,150)"
 	bgcolor := "black"
-	fgcolor := dotcolor
 	canvas.Background(bgcolor)
-	canvas.Text(c1, 92, 4, "Generate PDF (gpdf) API", "white")
-	canvas.SetFont(fontmap["mono"])
-	for i := range labels {
-		canvas.Text(c1, y, ts, labels[i], tcolor)
-		y -= yspace
-	}
-	y = 85.0
-	// arc
-	canvas.Circle(c2, y, dotsize, dotcolor)
-	canvas.Arc(c2, y, 5, 5, 0, 90, lw, shapecolor)
-	y -= yspace
-	// circle
-	canvas.Circle(c2, y, 3, shapecolor)
-	canvas.Circle(c2, y, dotsize, dotcolor)
-	y -= yspace
-	// ellipse
-	canvas.Ellipse(c2, y, 5, 2, shapecolor)
-	canvas.Circle(c2, y, dotsize, dotcolor)
-	y -= yspace
-	// image
-	canvas.ImageName(c2, y, 64, 48, "follow.jpg")
-	canvas.Circle(c2, y, dotsize, dotcolor)
-	y -= yspace
-	// line
-	canvas.Line(c3, y, c4, y, lw, shapecolor)
-	canvas.Circle(c3, y, dotsize, dotcolor)
-	canvas.Circle(c4, y, dotsize, dotcolor)
-	y -= yspace
-	// polygon
-	xp := []float64{c3, c2, c4}
-	yp := []float64{y, y + yspace2, y}
-	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
-	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
-	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
-	canvas.Polyline(xp, yp, 0.2, fgcolor)
-	xp[0] -= 15.0
-	xp[1] -= 15.0
-	xp[2] -= 15.0
-	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
-	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
-	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
-	canvas.Polygon(xp, yp, shapecolor)
-	y -= yspace
-	// quadcurve
-	bx := c3
-	by := y
-	cx := c2 + 5
-	cy := y + yspace2
-	ex := c4
-	ey := y
-	canvas.Curve(bx, by, cx, cy, ex, ey, lw, shapecolor)
-	canvas.Circle(bx, by, dotsize, dotcolor)
-	canvas.Circle(cx, cy, dotsize, dotcolor)
-	canvas.Circle(ex, ey, dotsize, dotcolor)
-	y -= yspace
-	// rect
-	canvas.Square(c2-10, y, 5, shapecolor)
-	canvas.Circle(c2-10, y, dotsize, dotcolor)
-	canvas.Rect(c2, y, 7, 5, shapecolor)
-	canvas.Circle(c2, y, dotsize, dotcolor)
-	y -= yspace
-	// text
-	tc0 := c2 - 18
-	tc1 := c2 - 9
-	tc2 := c2
-	tc3 := c2 + 3
-	canvas.BText(tc0, y, 2, "hello", shapecolor)
-	canvas.Circle(tc0, y, dotsize, dotcolor)
-	canvas.CText(tc1, y, 2, "hello", shapecolor)
-	canvas.Circle(tc1, y, dotsize, dotcolor)
-	canvas.EText(tc2, y, 2, "hello", shapecolor)
-	canvas.Circle(tc2, y, dotsize, dotcolor)
-	canvas.RText(tc3, y, 2, 45, "hello", shapecolor)
-	canvas.Circle(tc3, y, dotsize, dotcolor)
-	//canvas.Etext()
-	y -= yspace
-	// textcode
-	canvas.SetFont(fontmap["mono"])
-	TextCode(canvas, "hello.txt", c3, y+4, 12, yspace*0.6, 1.2, 1.6, 0.3, shapecolor, "black")
-	canvas.Circle(c3, y+4, dotsize, dotcolor)
-	y -= yspace
-	// grid
-	gy1 := y - 2.5
-	gy2 := y + 2.5
-	canvas.Grid(c3, c4, gy1, gy2, 0.1, 2.5, shapecolor)
-	canvas.Circle(85, gy1, dotsize, dotcolor)
-	canvas.Circle(95, gy2, dotsize, dotcolor)
 
 	// usage
-	canvas.NewPage(cw, ch)
 	canvas.Background(bgcolor)
 	for range 500 {
 		xr := rand.Float64() * 100

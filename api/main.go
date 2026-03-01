@@ -9,6 +9,135 @@ import (
 
 type Point struct{ X, Y float64 }
 
+// apitable makes a table of API calls
+func apitable(canvas *gpdf.Canvas) {
+	// API
+	labels := []string{
+		"Arc(x,y, w,h,a1,a2, size,color)",
+		"Circle(x,y, r, color)",
+		"Ellipse(x,y, w,h, color)",
+		"ImageName(x,y, w,h, name)",
+		"Line(x1,y1, x2,y2, size, color)",
+		"Polygon(x,y, color), Polyline(x,y size, color)",
+		"QuadCurve(bx,by, cx,cy, ex,ey, size, color)",
+		"Square(x,y, w, color), Rect(x, y, w,h, color), GradRect(x,y,w,h,c1,c2,pct)",
+		"{B,C,E}Text(x,y, size, s, color), RText(x,y, size,angle, s, color)",
+		"TextWrap(x,y,w,size,linespacing,s,color)",
+		"Grid(x1,x2, y1,y2, size, incr, color)",
+		"Background(color)",
+	}
+	yspace := 7.5
+	yspace2 := yspace / 2
+	y := 85.0
+	lw := 0.3
+	c1 := 5.0
+	c2 := c1 + 85
+	c3 := c2 - 5
+	c4 := c2 + 5
+	ts := 1.8
+	dotsize := 0.4
+	shapecolor := "rgb(180,180,180)" //"lightgray"
+	dotcolor := "black"
+	tcolor := "gray"
+	bgcolor := "white"
+	fgcolor := dotcolor
+	canvas.Background(bgcolor)
+	canvas.Text(c1, 92, 4, "Generate PDF (gpdf) API", fgcolor)
+	for i := range labels {
+		canvas.Text(c1, y, ts, labels[i], tcolor)
+		y -= yspace
+	}
+	y = 85.0
+	// arc
+	canvas.Circle(c2, y, dotsize, dotcolor)
+	canvas.Arc(c2, y, 5, 5, 0, 90, lw, shapecolor)
+
+	y -= yspace
+	// circle
+	canvas.Circle(c2, y, 3, shapecolor)
+	canvas.Circle(c2, y, dotsize, dotcolor)
+
+	y -= yspace
+	// ellipse
+	canvas.Ellipse(c2, y, 5, 2, shapecolor)
+	canvas.Circle(c2, y, dotsize, dotcolor)
+
+	y -= yspace
+	// image
+	canvas.ImageName(c2, y, 64, 48, "follow.jpg")
+	canvas.Circle(c2, y, dotsize, dotcolor)
+
+	y -= yspace
+	// line
+	canvas.Line(c3, y, c4, y, lw, shapecolor)
+	canvas.Circle(c3, y, dotsize, dotcolor)
+	canvas.Circle(c4, y, dotsize, dotcolor)
+
+	y -= yspace
+	// polygon
+	xp := []float64{c3, c2, c4}
+	yp := []float64{y, y + yspace2, y}
+	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
+	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
+	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
+	canvas.Polyline(xp, yp, 0.2, shapecolor)
+	xp[0] -= 15.0
+	xp[1] -= 15.0
+	xp[2] -= 15.0
+	canvas.Circle(xp[0], yp[0], dotsize, dotcolor)
+	canvas.Circle(xp[1], yp[1], dotsize, dotcolor)
+	canvas.Circle(xp[2], yp[2], dotsize, dotcolor)
+	canvas.Polygon(xp, yp, shapecolor)
+
+	y -= yspace
+	// quadcurve
+	bx := c3
+	by := y
+	cx := c2 + 5
+	cy := y + yspace2
+	ex := c4
+	ey := y
+	canvas.Curve(bx, by, cx, cy, ex, ey, lw, shapecolor)
+	canvas.Circle(bx, by, dotsize, dotcolor)
+	canvas.Circle(cx, cy, dotsize, dotcolor)
+	canvas.Circle(ex, ey, dotsize, dotcolor)
+
+	y -= yspace
+	// rect
+	canvas.Square(c2-10, y, 5, shapecolor)
+	canvas.Circle(c2-10, y, dotsize, dotcolor)
+	canvas.Rect(c2, y, 7, 5, shapecolor)
+	canvas.Circle(c2, y, dotsize, dotcolor)
+
+	y -= yspace
+	// text
+	tc0 := c2 - 18
+	tc1 := c2 - 9
+	tc2 := c2
+	tc3 := c2 + 3
+	canvas.BText(tc0, y, 2, "hello", shapecolor)
+	canvas.Circle(tc0, y, dotsize, dotcolor)
+	canvas.CText(tc1, y, 2, "hello", shapecolor)
+	canvas.Circle(tc1, y, dotsize, dotcolor)
+	canvas.EText(tc2, y, 2, "hello", shapecolor)
+	canvas.Circle(tc2, y, dotsize, dotcolor)
+	canvas.RText(tc3, y, 2, 45, "hello", shapecolor)
+	canvas.Circle(tc3, y, dotsize, dotcolor)
+
+	y -= yspace
+	// Textwrap
+	canvas.TextWrap(tc0, y, 25, 1.5, 1.2, "Now is the time for all good men to come to the aid of the party", shapecolor)
+
+	y -= yspace
+	// grid
+	gy1 := y - 2.5
+	gy2 := y + 2.5
+	canvas.Grid(c3, c4, gy1, gy2, 0.1, 2.5, shapecolor)
+	canvas.Circle(85, gy1, dotsize, dotcolor)
+	canvas.Circle(95, gy2, dotsize, dotcolor)
+}
+
+// api makes an API placemat
 func api(canvas *gpdf.Canvas) {
 	colx := 20.0
 	lw := 0.2
@@ -105,20 +234,31 @@ func api(canvas *gpdf.Canvas) {
 	canvas.ImageName(colx, 15, 75, 75, "earth.jpg")
 	canvas.Coord(colx, 15, subsize, "", "white")
 
-	tx1 := colx + 5
+	// Text
+	tx1 := colx - 5
 	tx2 := colx
-	tx3 := colx - 5
+	tx3 := colx + 5
+	tx4 := tx3 + 3
+	ss := subsize * .6
 	canvas.CText(colx, top+5, labelsize, "Text", labelcolor)
 	canvas.Text(tx1, top, subsize, "hello", labelcolor)
 	canvas.CText(tx2, top, subsize, "hello", labelcolor)
 	canvas.EText(tx3, top, subsize, "hello", labelcolor)
-	canvas.Circle(tx1, top, subsize*0.2, labelcolor, 50)
-	canvas.Circle(tx2, top, subsize*0.2, labelcolor, 50)
-	canvas.Circle(tx3, top, subsize*0.2, labelcolor, 50)
+	canvas.RText(tx4, top, subsize, 90, "hello", labelcolor)
+
+	canvas.Square(tx1, top, ss, labelcolor, 50)
+	canvas.Square(tx2, top, ss, labelcolor, 50)
+	canvas.Square(tx3, top, ss, labelcolor, 50)
+	canvas.Square(tx4, top, ss, labelcolor, 50)
+	canvas.CText(tx1, top-2, ss, "begin", labelcolor)
+	canvas.CText(tx2, top-2, ss, "center", labelcolor)
+	canvas.CText(tx3, top-2, ss, "end", labelcolor)
+	canvas.CText(tx4, top-2, ss, "rotate", labelcolor)
 }
 
 func main() {
-	cw, ch := 800.0, 500.0
+	cw := 792.0 // 800.0
+	ch := 612.0 // 500.0
 	canvas, err := gpdf.SetupCanvas(cw, ch)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
@@ -129,8 +269,12 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		return
 	}
+	canvas.Creator.SetTitle("gpdf API")
+	canvas.Creator.SetAuthor("Anthony Starks")
 	canvas.SetFont(font)
 	api(canvas)
+	canvas.NewPage(cw, ch)
+	apitable(canvas)
 	canvas.Creator.WriteToFile("api.pdf")
 
 }
