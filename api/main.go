@@ -231,7 +231,7 @@ func api(canvas *gpdf.Canvas) {
 
 	// Image
 	canvas.CText(colx, 30, labelsize, "Image", labelcolor)
-	canvas.ImageName(colx, 15, 75, 75, "earth.jpg")
+	canvas.ImageScaleName(colx, 15, 10, 0, 100, "earth.jpg")
 	canvas.Coord(colx, 15, subsize, "", "white")
 
 	// Text

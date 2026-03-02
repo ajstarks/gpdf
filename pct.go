@@ -326,6 +326,38 @@ func (c *Canvas) Image(x, y, w, h float64, img Pimage) {
 	}
 }
 
+func (c *Canvas) ImageScaleName(x, y, w, h, scale float64, name string) {
+	img, err := c.LoadImage(name)
+	if err != nil {
+		c.Rect(x, y, w, h, "black")
+		return
+	}
+	c.ImageScale(x, y, w, h, scale, img)
+}
+
+func (c *Canvas) ImageScale(x, y, w, h, scale float64, img Pimage) {
+	cw := c.Width
+	x, y = dimen(x, y, c.Width, c.Height)
+	nw, nh := img.Width, img.Height
+	// scale the image by the specified percentage
+	if scale > 0 {
+		w *= (scale / 100)
+		h *= (scale / 100)
+	}
+	// scale the image to a percentage of the canvas width
+	if h == 0 && w > 0 {
+		if nh > 0 {
+			imscale := (w / 100) * cw
+			w = imscale
+			h = imscale / (nw / nh)
+		}
+	}
+	err := c.AbsCenterImage(x, y, w, h, img.Image)
+	if err != nil {
+		c.Rect(x, y, w, h, "black")
+	}
+}
+
 // Grid makes a unlabeled coordinate grid starting at (xmin, ymin)
 // ending at (xmax, ymax), line width is size, incr is the size of the grid
 func (c *Canvas) Grid(xmin, xmax, ymin, ymax, size, incr float64, color string) {
