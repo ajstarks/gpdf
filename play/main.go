@@ -182,6 +182,7 @@ func main() {
 	a := 0.0
 	n := 10
 	op := 100.0
+	canvas.SetFont(fontmap["serif"])
 	canvas.Circle(50, 50, 2, "red")
 	for i := range n {
 		color := palette[i%(len(palette))]
@@ -191,24 +192,34 @@ func main() {
 	}
 
 	canvas.NewPage(cw, ch)
-	asize := 0.2
-	aw := 10.0
-	ah := 5.0
-	canvas.Circle(50, 50, 0.5, "maroon")
-	canvas.Arc(50, 50, aw, ah, 0, 90, asize, "red")
-	canvas.Arc(50, 50, aw, ah, 90, 180, asize, "green")
-	canvas.Arc(50, 50, aw, ah, 180, 270, asize, "blue")
-	canvas.Arc(50, 50, aw, ah, 270, 360, asize, "orange")
-	op = 100
-	for r := 15.0; r <= 50; r += 5 {
-		canvas.Arc(50, 50, r, r, 0, 90, asize*2, "red", op)
-		canvas.Arc(50, 50, r, r, 90, 180, asize*2, "green", op)
-		canvas.Arc(50, 50, r, r, 180, 270, asize*2, "blue", op)
-		canvas.Arc(50, 50, r, r, 270, 360, asize*2, "orange", op)
-		op -= 5
-
+	x = 5.0
+	incr := 30.0
+	asize := 5.0
+	Pi := 3.14159265359
+	y = 50
+	canvas.CText(50, 70, 3, "Arcs", "black")
+	for angle := 0.0; angle <= 360.0; angle += incr {
+		radians := angle * (Pi / 180)
+		canvas.CText(x, y+asize, 2, fmt.Sprintf("%v°", angle), "black")
+		canvas.CText(x, y-(asize*1.5), 1.2, fmt.Sprintf("%.2f rad", radians), "gray")
+		canvas.Arc(x, y, asize, asize, 0, angle, 0.1, "steelblue")
+		canvas.Arc(x, y, asize/2, asize/2, 0, angle, asize/2, "steelblue", 30)
+		canvas.Circle(x, y, asize/2, "steelblue", 20)
+		canvas.Circle(x, y, 0.2, "black")
+		x += asize * 1.5
 	}
-	canvas.LGrid(0, 100, 0, 100, 0.1, 5, "gray", 70)
+
+	canvas.NewPage(cw, ch)
+	incr = 5
+	r := 35.0
+	for angle := 0.0; angle < 360.0; angle += incr {
+		px, py := canvas.PolarDegrees(50, 50, r, angle)
+		canvas.Line(50, 50, px, py, 0.2, "black", 10)
+		canvas.CText(px, py, 1, fmt.Sprintf("%v", angle), "black")
+	}
+	canvas.Arc(50, 50, r, r, 0, 180, r, "lightsteelblue", 20)
+	canvas.Arc(50, 50, r, r, 180, 360, r, "maroon", 20)
+
 	err = canvas.Creator.WriteToFile(output)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
