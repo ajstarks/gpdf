@@ -65,7 +65,6 @@ func (c *Canvas) AbsGradRect(x, y, w, h float64, color1, color2 creator.ColorRGB
 	c1.R, c1.G, c1.B = color1.R, color1.G, color1.B
 	c2.R, c2.G, c2.B = color2.R, color2.G, color2.B
 	grad := creator.NewLinearGradient(x, y, w, h)
-	grad.Type = creator.GradientTypeLinear
 	grad.AddColorStop(0, c1)
 	grad.AddColorStop(percent/100, c2)
 	c.Page.DrawRect(x, y, w, h, &creator.RectOptions{FillGradient: grad})

@@ -1,0 +1,5 @@
+deck
+	slide "purple/white/50"
+		rect 50 50 80 20 "yellow/blue/50"
+	eslide
+edeck

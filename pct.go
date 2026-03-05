@@ -96,6 +96,7 @@ func (c *Canvas) GradRect(x, y, w, h float64, color1 string, color2 string, perc
 	h = pct(h, c.Height)
 	c1 := ColorLookup(color1)
 	c2 := ColorLookup(color2)
+	// println("PCT: color1=", c1.R, c1.G, c1.B, "color2=", c2.R, c2.G, c2.B)
 	c.AbsGradRect(x, y, w, h, c1, c2, percent)
 }
 

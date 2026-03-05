@@ -258,13 +258,17 @@ func rect(canvas *gpdf.Canvas, r deck.Rect) {
 	if r.Color == "" {
 		r.Color = defaultColor
 	}
-	c := r.Color
-	op := setopacity(r.Opacity)
 	x, y, w, h := r.Xp, r.Yp, r.Wp, r.Hp
-	if r.Hr == 100 {
-		canvas.Square(x, y, w, c, op)
+	if len(r.Gradcolor1) > 0 && len(r.Gradcolor2) > 0 {
+		canvas.GradRect(x-(w/2), y-(h/2), w, h, r.Gradcolor1, r.Gradcolor2, r.GradPercent)
 	} else {
-		canvas.Rect(x, y, w, h, c, op)
+		c := r.Color
+		op := setopacity(r.Opacity)
+		if r.Hr == 100 {
+			canvas.Square(x, y, w, c, op)
+		} else {
+			canvas.Rect(x, y, w, h, c, op)
+		}
 	}
 }
 
@@ -442,7 +446,7 @@ func list(canvas *gpdf.Canvas, list deck.List) {
 				canvas.RText(xp, yp, ts, rotation, t, color, op)
 			}
 		}
-		yp -= (ls * ts)
+		yp -= (ls * ts) * 1.5
 	}
 }
 
