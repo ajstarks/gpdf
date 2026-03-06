@@ -265,7 +265,7 @@ func rect(canvas *gpdf.Canvas, r deck.Rect) {
 		c := r.Color
 		op := setopacity(r.Opacity)
 		if r.Hr == 100 {
-			canvas.Square(x, y, w, c, op)
+			canvas.Rect(x, y, w, w*(canvas.Width/canvas.Height), c, op) // square
 		} else {
 			canvas.Rect(x, y, w, h, c, op)
 		}
@@ -349,6 +349,12 @@ func text(canvas *gpdf.Canvas, t deck.Text) {
 	if t.Font == "" {
 		t.Font = "sans"
 	}
+	var ls float64
+	if t.Lp == 0 {
+		ls = 1.4
+	} else {
+		ls = t.Lp
+	}
 	x, y, w, ts := t.Xp, t.Yp, t.Wp, t.Sp
 	c := t.Color
 	op := 100.0
@@ -359,14 +365,14 @@ func text(canvas *gpdf.Canvas, t deck.Text) {
 
 	s := t.Tdata
 	if t.Type == "block" {
-		canvas.TextWrapStrict(x, y, w, ts, 1.2, s, c, op)
+		canvas.TextWrap(x, y, w, ts, ls, s, c, op)
 		return
 	}
 	if len(t.File) > 0 {
 		tl := strings.Split(includefile(t.File), "\n")
 		if t.Type == "code" {
 			canvas.CustomFont = fontmap["mono"]
-			ch := float64(len(tl)) * linespacing * float64(ts)
+			ch := float64(len(tl)) * linespacing * ts
 			canvas.CornerRect(x-ts, y+(ts*2), (t.Wp), (ch), "rgb(240,240,240)")
 		}
 		textlines(canvas, x, y, ts, tl, c)
@@ -505,7 +511,6 @@ func process(slideNumber int, d deck.Deck, canvas *gpdf.Canvas) {
 			}
 		case "rect":
 			for _, r := range slide.Rect {
-
 				rect(canvas, r)
 			}
 		case "poly":
